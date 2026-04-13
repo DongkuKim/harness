@@ -1,0 +1,149 @@
+name: Template CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: template-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fast:
+    name: ${{ matrix.template.name }} / fast
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        template:
+          - name: next-monorepo
+            path: templates/next-monorepo
+            needs_python: false
+            needs_rust_nightly: false
+            rust_tools: ""
+          - name: next-fastapi-monorepo
+            path: templates/next-fastapi-monorepo
+            needs_python: true
+            needs_rust_nightly: false
+            rust_tools: ""
+          - name: next-axum-monorepo
+            path: templates/next-axum-monorepo
+            needs_python: false
+            needs_rust_nightly: true
+            rust_tools: cargo-udeps
+    defaults:
+      run:
+        working-directory: ${{ matrix.template.path }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: extractions/setup-just@v2
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - if: matrix.template.needs_python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - if: matrix.template.needs_python
+        uses: astral-sh/setup-uv@v6
+      - if: matrix.template.needs_rust_nightly
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt,clippy,rust-src
+      - if: matrix.template.rust_tools != ''
+        uses: taiki-e/install-action@v2
+        with:
+          tool: ${{ matrix.template.rust_tools }}
+      - run: pnpm install --frozen-lockfile
+      - if: matrix.template.needs_python
+        run: (cd apps/api && uv sync --group dev)
+      - run: just lint
+      - run: just typecheck
+
+  test:
+    name: ${{ matrix.template.name }} / test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        template:
+          - name: next-monorepo
+            path: templates/next-monorepo
+            needs_python: false
+            needs_rust: false
+            rust_tools: ""
+          - name: next-fastapi-monorepo
+            path: templates/next-fastapi-monorepo
+            needs_python: true
+            needs_rust: false
+            rust_tools: ""
+          - name: next-axum-monorepo
+            path: templates/next-axum-monorepo
+            needs_python: false
+            needs_rust: true
+            rust_tools: cargo-nextest
+    defaults:
+      run:
+        working-directory: ${{ matrix.template.path }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: extractions/setup-just@v2
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - if: matrix.template.needs_python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - if: matrix.template.needs_python
+        uses: astral-sh/setup-uv@v6
+      - if: matrix.template.needs_rust
+        uses: dtolnay/rust-toolchain@stable
+      - if: matrix.template.rust_tools != ''
+        uses: taiki-e/install-action@v2
+        with:
+          tool: ${{ matrix.template.rust_tools }}
+      - run: pnpm install --frozen-lockfile
+      - if: matrix.template.needs_python
+        run: (cd apps/api && uv sync --group dev)
+      - run: just test
+
+  ux:
+    name: ${{ matrix.template.name }} / ux
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        template:
+          - name: next-monorepo
+            path: templates/next-monorepo
+          - name: next-fastapi-monorepo
+            path: templates/next-fastapi-monorepo
+          - name: next-axum-monorepo
+            path: templates/next-axum-monorepo
+    defaults:
+      run:
+        working-directory: ${{ matrix.template.path }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: extractions/setup-just@v2
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: just ux
