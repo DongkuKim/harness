@@ -15,9 +15,13 @@ node_modules
 
 # Testing
 coverage
+playwright-report
+test-results
+.lighthouseci
 
 # Turbo
 .turbo
+.lefthook
 
 # Vercel
 .vercel
@@ -36,6 +40,7 @@ npm-debug.log*
 .DS_Store
 *.pem
 __pycache__/
-.mypy_cache/
 .pytest_cache/
 .ruff_cache/
+.pyright/
+.hypothesis/

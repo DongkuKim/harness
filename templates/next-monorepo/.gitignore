@@ -14,9 +14,13 @@ node_modules
 
 # Testing
 coverage
+playwright-report
+test-results
+.lighthouseci
 
 # Turbo
 .turbo
+.lefthook
 
 # Vercel
 .vercel

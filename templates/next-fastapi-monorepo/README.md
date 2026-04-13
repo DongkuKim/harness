@@ -1,13 +1,37 @@
-# Next.js + FastAPI monorepo template
+# Next.js + FastAPI Monorepo Template
 
-This is a Next.js monorepo template with a FastAPI app managed by `uv`.
+This template ships a README-aligned harness for `apps/web` and `apps/api`.
+
+## Harness Commands
+
+Run all top-level checks from the template root:
+
+```bash
+just install
+just lint
+just typecheck
+just test
+just ux
+just supply-chain
+just ci
+```
+
+`packages/ui` is intentionally excluded from harness enforcement because it is generated and updated through `shadcn` commands.
+
+## What Each Lane Covers
+
+- `just lint`: Biome, dependency-cruiser, and knip for `apps/web`; Ruff, deptry, and import-linter for `apps/api`
+- `just typecheck`: `tsc --noEmit` for `apps/web` and basedpyright for `apps/api`
+- `just test`: Vitest smoke coverage for `apps/web` and pytest coverage for `apps/api`
+- `just ux`: Playwright, axe, and Lighthouse against the running Next.js app
+- `just supply-chain`: gitleaks, osv-scanner, `pnpm audit`, and `pip-audit`
 
 ## Apps
 
 - `apps/web`: Next.js app
 - `apps/api`: FastAPI app
 
-## Adding components
+## Adding Components
 
 To add components to your app, run the following command at the root of your `web` app:
 
@@ -15,17 +39,17 @@ To add components to your app, run the following command at the root of your `we
 pnpm dlx shadcn@latest add button -c apps/web
 ```
 
-This will place the ui components in the `packages/ui/src/components` directory.
+This places generated UI components in `packages/ui/src/components`.
 
-## Using components
+## Using Components
 
-To use the components in your app, import them from the `ui` package.
+Import shared components from the `ui` package.
 
 ```tsx
-import { Button } from "@workspace/ui/components/button";
+import { Button } from "@workspace/ui/components/button"
 ```
 
-## Running the backend
+## Running The Backend
 
 Start the FastAPI app from the monorepo root:
 

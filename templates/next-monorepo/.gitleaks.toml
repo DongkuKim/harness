@@ -1,0 +1,5 @@
+title = "next-monorepo gitleaks config"
+
+[extend]
+useDefault = true
+
