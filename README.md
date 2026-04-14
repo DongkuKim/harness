@@ -206,11 +206,11 @@ This repo can also act as a local template catalog.
 - `templates/next-axum-monorepo`
 - `templates/next-fastapi-monorepo`
 
-The source of truth for template discovery lives in [templates/registry.json](/home/kimdongkudavid/develop/personal/dk-harness/templates/registry.json), and each template directory carries its own committed `mise.toml` for the local scaffold toolchain.
+The source of truth for template discovery lives in [templates/registry.json](templates/registry.json), and each template directory carries its own committed `mise.toml` for the local scaffold toolchain.
 
 ## CLI
 
-Use [bin/dk-harness](/home/kimdongkudavid/develop/personal/dk-harness/bin/dk-harness) to scaffold from the local catalog:
+Use [bin/dk-harness](bin/dk-harness) to scaffold from the local catalog:
 
 ```bash
 ./bin/dk-harness list
@@ -220,7 +220,7 @@ Use [bin/dk-harness](/home/kimdongkudavid/develop/personal/dk-harness/bin/dk-har
 
 The CLI copies from the local `templates/` directory, so edits made here immediately affect future scaffolds from this repo.
 
-You can also expose the same CLI through npm because the repo now defines a package binary in [package.json](/home/kimdongkudavid/develop/personal/dk-harness/package.json).
+You can also expose the same CLI through npm because the repo now defines a package binary in [package.json](package.json).
 
 Local repo usage with npm:
 
