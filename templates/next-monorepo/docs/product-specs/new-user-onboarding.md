@@ -6,7 +6,7 @@ A newly scaffolded project should give a user confidence that the app is wired c
 
 ## Default Experience
 
-- the home page renders without extra setup
+- the home page renders as a small validation fixture
 - the shared button component is already usable
-- dark mode can be toggled
+- the dark mode hotkey and accessibility basics are available
 - the next implementation step is obvious
