@@ -9,12 +9,6 @@ lint:
   pnpm --filter web lint
   pnpm --dir packages/ui exec depcruise --config dependency-cruiser.cjs src
 
-knowledge-base:
-  node ./scripts/knowledge-base.mjs check
-
-knowledge-base-fix:
-  node ./scripts/knowledge-base.mjs write
-
 typecheck:
   pnpm --filter web typecheck
 
@@ -29,4 +23,4 @@ supply-chain:
   osv-scanner scan source -r .
   pnpm audit --audit-level=high
 
-ci: knowledge-base lint typecheck test ux supply-chain
+ci: lint typecheck test ux supply-chain

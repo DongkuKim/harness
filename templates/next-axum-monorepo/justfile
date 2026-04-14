@@ -15,12 +15,6 @@ lint:
   (cd apps/axum && cargo clippy --all-targets --all-features -- -D warnings)
   (cd apps/axum && cargo +nightly udeps --all-targets)
 
-knowledge-base:
-  node ./scripts/knowledge-base.mjs check
-
-knowledge-base-fix:
-  node ./scripts/knowledge-base.mjs write
-
 typecheck:
   pnpm --filter web typecheck
   (cd apps/axum && cargo check --all-targets)
@@ -39,4 +33,4 @@ supply-chain:
   (cd apps/axum && cargo deny check)
   (cd apps/axum && cargo audit)
 
-ci: knowledge-base lint typecheck test ux supply-chain
+ci: lint typecheck test ux supply-chain

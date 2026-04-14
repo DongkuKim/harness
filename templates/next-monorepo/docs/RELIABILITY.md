@@ -18,7 +18,6 @@ just ci
 ## Lane Responsibilities
 
 - `just lint`: app lint plus shared UI dependency-layer checks
-- `just knowledge-base`: knowledge-base structure, links, plan artifacts, and generated doc checks
 - `just typecheck`: TypeScript validation for `apps/web`
 - `just test`: Vitest coverage for `apps/web`
 - `just ux`: Playwright, axe, and Lighthouse for the running app
@@ -28,7 +27,6 @@ just ci
 
 GitHub Actions uses four jobs in `.github/workflows/ci.yml`:
 
-- `knowledge-base`
 - `fast`
 - `test`
 - `ux`
@@ -36,4 +34,4 @@ GitHub Actions uses four jobs in `.github/workflows/ci.yml`:
 
 ## Doc Gardening
 
-A scheduled doc-gardening workflow refreshes generated knowledge-base artifacts and opens a pull request when the repository documentation needs mechanical cleanup.
+Doc gardening is a repeated manual task tracked in `docs/exec-plans/repeated-work.md`.
