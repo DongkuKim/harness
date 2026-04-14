@@ -2,6 +2,9 @@
 
 Harness for agentic development.
 
+This harness was created following OpenAI's Harness Engineering article:
+https://openai.com/ko-KR/index/harness-engineering/
+
 The goal is not only to test correctness, but to create an environment where an AI agent is pushed toward good behavior by default:
 
 - fast feedback
