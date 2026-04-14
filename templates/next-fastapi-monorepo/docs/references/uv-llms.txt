@@ -1,0 +1,7 @@
+uv is part of this starter.
+
+Use uv for:
+- syncing the API environment
+- running lint, typecheck, test, and supply-chain commands inside `apps/api`
+
+Keep the exact uv workflow documented here if the Python toolchain changes.

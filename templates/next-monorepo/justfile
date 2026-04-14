@@ -7,6 +7,7 @@ install:
 
 lint:
   pnpm --filter web lint
+  pnpm --dir packages/ui exec depcruise --config dependency-cruiser.cjs src
 
 typecheck:
   pnpm --filter web typecheck
@@ -23,4 +24,3 @@ supply-chain:
   pnpm audit --audit-level=high
 
 ci: lint typecheck test ux supply-chain
-

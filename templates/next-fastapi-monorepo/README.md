@@ -16,11 +16,11 @@ just supply-chain
 just ci
 ```
 
-`packages/ui` is intentionally excluded from harness enforcement because it is generated and updated through `shadcn` commands.
+`packages/ui` is still generated and updated through `shadcn` commands, but its internal layer boundaries are checked as part of the harness.
 
 ## What Each Lane Covers
 
-- `just lint`: Biome, dependency-cruiser, and knip for `apps/web`; Ruff, deptry, and import-linter for `apps/api`
+- `just lint`: Biome, dependency-cruiser, and knip for `apps/web`; dependency-cruiser layer checks for `packages/ui`; Ruff, deptry, and import-linter for `apps/api`
 - `just typecheck`: `tsc --noEmit` for `apps/web` and basedpyright for `apps/api`
 - `just test`: Vitest smoke coverage for `apps/web` and pytest coverage for `apps/api`
 - `just ux`: Playwright, axe, and Lighthouse against the running Next.js app
@@ -39,14 +39,14 @@ To add components to your app, run the following command at the root of your `we
 pnpm dlx shadcn@latest add button -c apps/web
 ```
 
-This places generated UI components in `packages/ui/src/components`.
+This places generated UI components in `packages/ui/src/ui`.
 
 ## Using Components
 
 Import shared components from the `ui` package.
 
 ```tsx
-import { Button } from "@workspace/ui/components/button"
+import { Button } from "@workspace/ui/ui/button"
 ```
 
 ## Running The Backend

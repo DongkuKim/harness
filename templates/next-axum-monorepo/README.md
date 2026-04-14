@@ -16,11 +16,11 @@ just supply-chain
 just ci
 ```
 
-`packages/ui` is intentionally excluded from harness enforcement because it is generated and updated through `shadcn` commands.
+`packages/ui` is still generated and updated through `shadcn` commands, but its internal layer boundaries are checked as part of the harness.
 
 ## What Each Lane Covers
 
-- `just lint`: Biome, dependency-cruiser, and knip for `apps/web`; rustfmt, clippy, and cargo-udeps for `apps/axum`
+- `just lint`: Biome, dependency-cruiser, and knip for `apps/web`; dependency-cruiser layer checks for `packages/ui`; a custom Rust layer boundary check plus rustfmt, clippy, and cargo-udeps for `apps/axum`
 - `just typecheck`: `tsc --noEmit` for `apps/web` and `cargo check` for `apps/axum`
 - `just test`: Vitest smoke coverage for `apps/web` and cargo-nextest coverage for `apps/axum`
 - `just ux`: Playwright, axe, and Lighthouse against the running Next.js app
@@ -34,12 +34,12 @@ To add components to your app, run the following command at the root of your `we
 pnpm dlx shadcn@latest add button -c apps/web
 ```
 
-This places generated UI components in `packages/ui/src/components`.
+This places generated UI components in `packages/ui/src/ui`.
 
 ## Using Components
 
 Import shared components from the `ui` package.
 
 ```tsx
-import { Button } from "@workspace/ui/components/button"
+import { Button } from "@workspace/ui/ui/button"
 ```

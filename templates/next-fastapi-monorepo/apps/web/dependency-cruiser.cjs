@@ -42,6 +42,17 @@ module.exports = {
         dependencyTypesNot: ["npm", "npm-dev", "core"],
       },
     },
+    {
+      name: "lib-does-not-import-upwards",
+      severity: "error",
+      from: {
+        path: "^lib/",
+      },
+      to: {
+        path: "^(app/|components/|hooks/|(?!(lib/)).+)",
+        dependencyTypesNot: ["npm", "npm-dev", "core"],
+      },
+    },
   ],
   options: {
     doNotFollow: {

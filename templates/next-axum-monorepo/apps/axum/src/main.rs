@@ -1,10 +1,8 @@
-use std::net::SocketAddr;
-
-use axum_server::app_router;
+use axum_server::{app_router, server_address};
 
 #[tokio::main]
 async fn main() {
-    let address = SocketAddr::from(([127, 0, 0, 1], 3001));
+    let address = server_address().expect("failed to parse server address");
     let listener = tokio::net::TcpListener::bind(address)
         .await
         .expect("failed to bind TCP listener");

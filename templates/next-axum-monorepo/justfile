@@ -9,6 +9,8 @@ install:
 
 lint:
   pnpm --filter web lint
+  pnpm --dir packages/ui exec depcruise --config dependency-cruiser.cjs src
+  node ./scripts/check-rust-layers.mjs
   (cd apps/axum && cargo fmt --check)
   (cd apps/axum && cargo clippy --all-targets --all-features -- -D warnings)
   (cd apps/axum && cargo +nightly udeps --all-targets)

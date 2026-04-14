@@ -36,8 +36,14 @@
   "exports": {
     "./globals.css": "./src/styles/globals.css",
     "./postcss.config": "./postcss.config.mjs",
-    "./lib/*": "./src/lib/*.ts",
-    "./components/*": "./src/components/*.tsx",
-    "./hooks/*": "./src/hooks/*.ts"
+    "./types/*": "./src/types/*.ts",
+    "./config/*": "./src/config/*.ts",
+    "./repo/*": "./src/repo/*.ts",
+    "./service/*": "./src/service/*.ts",
+    "./runtime/*": "./src/runtime/*.ts",
+    "./runtime/hooks/*": "./src/runtime/hooks/*.ts",
+    "./providers/*": "./src/providers/*.ts",
+    "./utils/*": "./src/utils/*.ts",
+    "./ui/*": "./src/ui/*.tsx"
   }
 }
