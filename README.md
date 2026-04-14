@@ -51,6 +51,16 @@ These are worth using no matter which stack a project uses.
 
 Run `mise install` at the repository root before using the CLI or any release checks. The committed [`.mise.toml`](.mise.toml) is the source of truth for the repo's pinned Node, pnpm, and Python versions.
 
+## Source Repo Commands
+
+Use the root repo commands when you are validating `dk-harness` itself rather than one of the generated templates.
+
+```bash
+just self-check
+just supply-chain
+just ci
+```
+
 ## By Role
 
 These are the categories the harness should cover across all stacks.
@@ -160,6 +170,11 @@ Do not run everything in one giant job. Split the harness by speed and purpose.
 3. `ux`: Playwright, accessibility, visual regression, Lighthouse
 4. `supply-chain`: vulnerability, license, and secret scanning
 
+For this source repo specifically, the lane split is:
+
+- `self-check`: CLI compilation plus release tarball verification
+- `supply-chain`: gitleaks, osv-scanner, and root `npm audit`
+
 ## Minimal Opinionated Starter Set
 
 If I wanted a strong default harness for agentic development without making it too heavy, I would start with:
@@ -236,6 +251,7 @@ Release prerequisites:
 - Run `mise install` first if you want the committed toolchain versions instead of relying on system binaries.
 - `python3` must be on `PATH` if you are not using `mise`, because the published binary is a Python script.
 - Node.js and npm must be available to run `npm exec`, `npx`, `npm pack`, and `npm publish`.
+- gitleaks and osv-scanner must be available if you want to run `just supply-chain` locally.
 
 Release gate:
 

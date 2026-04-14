@@ -13,9 +13,11 @@ The release flow is intentionally small and explicit.
 - `npm run release:check` runs `scripts/release-pack-check.mjs`.
 - The script packs the npm tarball, inspects required entries, and smoke-tests the installed CLI.
 - The smoke test verifies both `dk-harness list` and `dk-harness new next-monorepo ...`.
+- `npm run repo:self-check` wraps the release check with Python CLI compilation and a direct local `dk-harness list` call.
 
 ## Release Expectations
 
 - Template edits should not break the package layout.
 - A template that cannot be listed or scaffolded is a release-blocking regression.
 - If the tarball shape changes, update the release check and the docs together.
+- `.github/workflows/repo-ci.yml` runs `repo / self-check` so release-confidence checks are visible separately from template matrix results.
