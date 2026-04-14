@@ -85,9 +85,9 @@ function assert(condition, message) {
 }
 
 const options = parseArgs(process.argv.slice(2));
-const tempRoot = options.targetRoot
-  ? mkdtempSync(path.join(path.resolve(options.targetRoot), `${options.template}-`))
-  : mkdtempSync(path.join(os.tmpdir(), `${options.template}-`));
+const targetRoot = options.targetRoot ? path.resolve(options.targetRoot) : os.tmpdir();
+mkdirSync(targetRoot, { recursive: true });
+const tempRoot = mkdtempSync(path.join(targetRoot, `${options.template}-`));
 
 try {
   console.log(`Scaffold evaluation for ${options.template}`);
