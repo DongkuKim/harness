@@ -68,15 +68,16 @@ def validate_registry_entry(entry: dict[str, object]) -> None:
                 f"{entry['name']!r}: metadata.{field_name} must be a non-empty list"
             )
 
-        invalid_values = sorted(
+        invalid_values = [
             value for value in values if not isinstance(value, str) or value not in allowed_values
-        )
+        ]
         if invalid_values:
             allowed = ", ".join(sorted(allowed_values))
+            invalid_display = ", ".join(repr(value) for value in invalid_values)
             raise SystemExit(
                 "Invalid registry entry for "
                 f"{entry['name']!r}: metadata.{field_name} contains unsupported values "
-                f"{', '.join(repr(value) for value in invalid_values)}; "
+                f"{invalid_display}; "
                 f"allowed values: {allowed}"
             )
 
