@@ -1,20 +1,35 @@
-# 프로젝트 컨텍스트
+# Project Context
 
-이 문서는 짧은 목차 역할만 합니다.
-세부 설명은 `docs/` 아래 문서를 우선적으로 확인하세요.
+This file is a short table of contents for the template knowledge base.
 
-## 빌드 & 테스트
+## Architecture
 
-빌드, 테스트, 로컬 검증 명령어와 CI lane 구성은 [docs/build.md](docs/build.md) 참조
+System structure and enforced dependency layers: [ARCHITECTURE.md](ARCHITECTURE.md)
 
-## 아키텍처
+## Design
 
-웹과 FastAPI 서비스 구조, 의존성 레이어 규칙은 [docs/architecture.md](docs/architecture.md) 참조
+Design notes and core beliefs: [docs/DESIGN.md](docs/DESIGN.md), [docs/design-docs/index.md](docs/design-docs/index.md)
 
-## 코딩 컨벤션
+## Frontend
 
-UI 생성 방식, FastAPI 계층 분리, import 규칙은 [docs/conventions.md](docs/conventions.md) 참조
+Frontend conventions, UI package structure, and shared component rules: [docs/FRONTEND.md](docs/FRONTEND.md)
 
-## API 계약
+## Product
 
-FastAPI 엔드포인트와 계약 변경 규칙은 [docs/api/README.md](docs/api/README.md) 참조
+Starter goals and onboarding expectations: [docs/PRODUCT_SENSE.md](docs/PRODUCT_SENSE.md), [docs/product-specs/index.md](docs/product-specs/index.md)
+
+## Plans
+
+Execution plans and tech debt tracking: [docs/PLANS.md](docs/PLANS.md), [docs/exec-plans/tech-debt-tracker.md](docs/exec-plans/tech-debt-tracker.md)
+
+## Reliability
+
+Build, test, CI, and operational expectations: [docs/RELIABILITY.md](docs/RELIABILITY.md)
+
+## Quality And Security
+
+Quality rubric and security posture: [docs/QUALITY_SCORE.md](docs/QUALITY_SCORE.md), [docs/SECURITY.md](docs/SECURITY.md)
+
+## References And Generated Artifacts
+
+Reference material and generated snapshots: [docs/references/design-system-reference-llms.txt](docs/references/design-system-reference-llms.txt), [docs/generated/db-schema.md](docs/generated/db-schema.md)

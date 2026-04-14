@@ -1,0 +1,10 @@
+Shared UI uses `shadcn` with the `radix-lyra` style.
+Public shared imports should prefer:
+- @workspace/ui/ui/*
+- @workspace/ui/runtime/*
+- @workspace/ui/providers/*
+
+The shared UI package enforces:
+Types -> Config -> Repo -> Service -> Runtime -> UI
+
+Cross-cutting concerns must enter through Providers.
