@@ -4,9 +4,21 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - '.github/workflows/templates-ci.yml'
+      - 'bin/**'
+      - 'package.json'
+      - 'scripts/**'
+      - 'templates/**'
   push:
     branches:
       - main
+    paths:
+      - '.github/workflows/templates-ci.yml'
+      - 'bin/**'
+      - 'package.json'
+      - 'scripts/**'
+      - 'templates/**'
   workflow_dispatch:
 
 concurrency:
@@ -14,28 +26,132 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  prepare:
+    name: Prepare matrix
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.build.outputs.should_run }}
+      fast_matrix: ${{ steps.build.outputs.fast_matrix }}
+      test_matrix: ${{ steps.build.outputs.test_matrix }}
+      ux_matrix: ${{ steps.build.outputs.ux_matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: changes
+        if: github.event_name != 'workflow_dispatch'
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            shared:
+              - '.github/workflows/templates-ci.yml'
+              - 'bin/**'
+              - 'package.json'
+              - 'scripts/**'
+              - 'templates/registry.json'
+            next_monorepo:
+              - 'templates/next-monorepo/**'
+            next_fastapi_monorepo:
+              - 'templates/next-fastapi-monorepo/**'
+            next_axum_monorepo:
+              - 'templates/next-axum-monorepo/**'
+      - id: build
+        uses: actions/github-script@v7
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SHARED_CHANGED: ${{ steps.changes.outputs.shared }}
+          NEXT_MONOREPO_CHANGED: ${{ steps.changes.outputs.next_monorepo }}
+          NEXT_FASTAPI_MONOREPO_CHANGED: ${{ steps.changes.outputs.next_fastapi_monorepo }}
+          NEXT_AXUM_MONOREPO_CHANGED: ${{ steps.changes.outputs.next_axum_monorepo }}
+        with:
+          script: |
+            const allTemplates = [
+              {
+                name: "next-monorepo",
+                path: "templates/next-monorepo",
+                change_key: "NEXT_MONOREPO_CHANGED",
+                lanes: {
+                  fast: {
+                    needs_python: false,
+                    needs_rust_nightly: false,
+                    rust_tools: "",
+                  },
+                  test: {
+                    needs_python: false,
+                    needs_rust: false,
+                    rust_tools: "",
+                  },
+                  ux: {},
+                },
+              },
+              {
+                name: "next-fastapi-monorepo",
+                path: "templates/next-fastapi-monorepo",
+                change_key: "NEXT_FASTAPI_MONOREPO_CHANGED",
+                lanes: {
+                  fast: {
+                    needs_python: true,
+                    needs_rust_nightly: false,
+                    rust_tools: "",
+                  },
+                  test: {
+                    needs_python: true,
+                    needs_rust: false,
+                    rust_tools: "",
+                  },
+                  ux: {},
+                },
+              },
+              {
+                name: "next-axum-monorepo",
+                path: "templates/next-axum-monorepo",
+                change_key: "NEXT_AXUM_MONOREPO_CHANGED",
+                lanes: {
+                  fast: {
+                    needs_python: false,
+                    needs_rust_nightly: true,
+                    rust_tools: "cargo-udeps",
+                  },
+                  test: {
+                    needs_python: false,
+                    needs_rust: true,
+                    rust_tools: "cargo-nextest",
+                  },
+                  ux: {},
+                },
+              },
+            ];
+            const buildMatrix = (templates, lane) => ({
+              template: templates.map((template) => ({
+                name: template.name,
+                path: template.path,
+                ...template.lanes[lane],
+              })),
+            });
+
+            const runAll =
+              process.env.EVENT_NAME === "workflow_dispatch" ||
+              process.env.SHARED_CHANGED === "true";
+
+            const selectedTemplates = runAll
+              ? allTemplates
+              : allTemplates.filter(
+                  (template) => process.env[template.change_key] === "true"
+                );
+
+            core.setOutput("should_run", selectedTemplates.length > 0 ? "true" : "false");
+            core.setOutput("fast_matrix", JSON.stringify(buildMatrix(selectedTemplates, "fast")));
+            core.setOutput("test_matrix", JSON.stringify(buildMatrix(selectedTemplates, "test")));
+            core.setOutput("ux_matrix", JSON.stringify(buildMatrix(selectedTemplates, "ux")));
+
   fast:
+    needs: prepare
+    if: needs.prepare.outputs.should_run == 'true'
     name: ${{ matrix.template.name }} / fast
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        template:
-          - name: next-monorepo
-            path: templates/next-monorepo
-            needs_python: false
-            needs_rust_nightly: false
-            rust_tools: ""
-          - name: next-fastapi-monorepo
-            path: templates/next-fastapi-monorepo
-            needs_python: true
-            needs_rust_nightly: false
-            rust_tools: ""
-          - name: next-axum-monorepo
-            path: templates/next-axum-monorepo
-            needs_python: false
-            needs_rust_nightly: true
-            rust_tools: cargo-udeps
+      matrix: ${{ fromJson(needs.prepare.outputs.fast_matrix) }}
     defaults:
       run:
         working-directory: ${{ matrix.template.path }}
@@ -69,27 +185,13 @@ jobs:
       - run: just typecheck
 
   test:
+    needs: prepare
+    if: needs.prepare.outputs.should_run == 'true'
     name: ${{ matrix.template.name }} / test
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        template:
-          - name: next-monorepo
-            path: templates/next-monorepo
-            needs_python: false
-            needs_rust: false
-            rust_tools: ""
-          - name: next-fastapi-monorepo
-            path: templates/next-fastapi-monorepo
-            needs_python: true
-            needs_rust: false
-            rust_tools: ""
-          - name: next-axum-monorepo
-            path: templates/next-axum-monorepo
-            needs_python: false
-            needs_rust: true
-            rust_tools: cargo-nextest
+      matrix: ${{ fromJson(needs.prepare.outputs.test_matrix) }}
     defaults:
       run:
         working-directory: ${{ matrix.template.path }}
@@ -120,18 +222,13 @@ jobs:
       - run: just test
 
   ux:
+    needs: prepare
+    if: needs.prepare.outputs.should_run == 'true'
     name: ${{ matrix.template.name }} / ux
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        template:
-          - name: next-monorepo
-            path: templates/next-monorepo
-          - name: next-fastapi-monorepo
-            path: templates/next-fastapi-monorepo
-          - name: next-axum-monorepo
-            path: templates/next-axum-monorepo
+      matrix: ${{ fromJson(needs.prepare.outputs.ux_matrix) }}
     defaults:
       run:
         working-directory: ${{ matrix.template.path }}
