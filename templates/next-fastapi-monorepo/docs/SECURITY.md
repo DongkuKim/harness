@@ -13,4 +13,3 @@ This starter includes basic Node and Python supply-chain checks.
 
 - do not commit secrets
 - keep Node and Python dependencies current
-- route cross-cutting application concerns through explicit boundaries

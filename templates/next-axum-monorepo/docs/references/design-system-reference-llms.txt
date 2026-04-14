@@ -1,10 +1,13 @@
-Shared UI uses `shadcn` with the `radix-lyra` style.
-Public shared imports should prefer:
-- @workspace/ui/ui/*
-- @workspace/ui/runtime/*
-- @workspace/ui/providers/*
+This reference should contain only design-system facts for the shared UI package.
 
-The shared UI package enforces:
-Types -> Config -> Repo -> Service -> Runtime -> UI
+Current baseline:
+- UI system: `shadcn`
+- style preset: `radix-lyra`
+- Tailwind base color: `neutral`
+- CSS variables: enabled
+- icon library: `lucide`
+- theme tokens live in `packages/ui/src/styles/globals.css`
+- the starter includes light and dark theme tokens using OKLCH color values
+- the radius scale is derived from `--radius: 0.625rem`
 
-Cross-cutting concerns must enter through Providers.
+Update this file when the component style, token set, icon set, or theming rules change.

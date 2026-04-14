@@ -14,4 +14,3 @@ This starter includes basic Node and Rust supply-chain checks.
 
 - do not commit secrets
 - keep Rust and Node dependencies current
-- route cross-cutting application concerns through explicit boundaries

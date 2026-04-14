@@ -12,4 +12,3 @@ This starter focuses on basic supply-chain and secret hygiene.
 
 - do not commit secrets
 - keep dependencies current
-- prefer explicit provider boundaries for auth, telemetry, and feature flags

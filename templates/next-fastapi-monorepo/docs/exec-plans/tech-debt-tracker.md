@@ -1,3 +1,3 @@
 # Tech Debt Tracker
 
-- No active tech debt items recorded yet.
+This document should contain active cleanup items, follow-up work, and known template debt.
