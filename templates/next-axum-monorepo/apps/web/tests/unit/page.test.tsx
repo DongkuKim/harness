@@ -25,6 +25,10 @@ describe("Page", () => {
     }
 
     expect(screen.getByRole("button", { name: "Button" })).toBeEnabled()
-    expect(screen.getByText("Press d to toggle dark mode")).toBeInTheDocument()
+    expect(
+      screen.getByText((_, element) => {
+        return element?.textContent === "Press d to toggle dark mode"
+      }),
+    ).toBeInTheDocument()
   })
 })
