@@ -1,0 +1,14 @@
+{
+  "name": "dk-harness",
+  "version": "0.1.0",
+  "description": "Scaffold projects from the local harness template catalog.",
+  "bin": {
+    "dk-harness": "./bin/dk-harness"
+  },
+  "files": [
+    "bin/dk-harness",
+    "templates",
+    "README.md"
+  ],
+  "license": "Apache-2.0"
+}

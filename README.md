@@ -1,4 +1,4 @@
-# harness
+# dk-harness
 
 Harness for agentic development.
 
@@ -181,11 +181,11 @@ This repo can also act as a local template catalog.
 - `templates/next-axum-monorepo`
 - `templates/next-fastapi-monorepo`
 
-The source of truth for template discovery lives in [templates/registry.json](/home/kimdongkudavid/develop/personal/harness/templates/registry.json).
+The source of truth for template discovery lives in [templates/registry.json](/home/kimdongkudavid/develop/personal/dk-harness/templates/registry.json).
 
 ## CLI
 
-Use [bin/dk-harness](/home/kimdongkudavid/develop/personal/harness/bin/dk-harness) to scaffold from the local catalog:
+Use [bin/dk-harness](/home/kimdongkudavid/develop/personal/dk-harness/bin/dk-harness) to scaffold from the local catalog:
 
 ```bash
 ./bin/dk-harness list
@@ -194,6 +194,24 @@ Use [bin/dk-harness](/home/kimdongkudavid/develop/personal/harness/bin/dk-harnes
 ```
 
 The CLI copies from the local `templates/` directory, so edits made here immediately affect future scaffolds from this repo.
+
+You can also expose the same CLI through npm because the repo now defines a package binary in [package.json](/home/kimdongkudavid/develop/personal/dk-harness/package.json).
+
+Local repo usage with npm:
+
+```bash
+npm exec --package . dk-harness list
+npm exec --package . dk-harness next-monorepo my-app
+```
+
+If you publish the package to npm, consumers can run it without cloning the repo:
+
+```bash
+npx dk-harness@latest list
+npx dk-harness@latest next-monorepo my-app
+```
+
+The current CLI is a Python entrypoint, so machines using the npm binary still need `python3` available.
 
 ## Skills In Templates
 
@@ -211,4 +229,4 @@ If you also want each starter to live as its own GitHub repo, export from this r
 ./bin/dk-harness export next-axum-monorepo ../dk-harness-next-axum-monorepo --force
 ```
 
-That keeps `harness` as the source of truth locally while giving you separate repos to publish as template repositories on GitHub.
+That keeps `dk-harness` as the source of truth locally while giving you separate repos to publish as template repositories on GitHub.
