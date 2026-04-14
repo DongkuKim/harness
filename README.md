@@ -39,7 +39,7 @@ These are worth using no matter which stack a project uses.
 
 | Role | Recommended tools | Why |
 | --- | --- | --- |
-| Toolchain pinning | `mise` | Commit the repo and template toolchains in `.mise.toml` so agents and humans run the same versions. |
+| Toolchain pinning | `mise` | Commit the repo toolchain in `.mise.toml` and each template toolchain in `mise.toml` so agents and humans run the same versions. |
 | Task runner | `just` | Gives the agent a small, predictable command surface such as `just lint` and `just test`. |
 | Git hooks | `lefthook` or `pre-commit` | Run fast checks before bad changes spread. |
 | CI | `GitHub Actions` | Standardize the same harness in automation. |
@@ -191,7 +191,7 @@ This repo can also act as a local template catalog.
 - `templates/next-axum-monorepo`
 - `templates/next-fastapi-monorepo`
 
-The source of truth for template discovery lives in [templates/registry.json](/home/kimdongkudavid/develop/personal/dk-harness/templates/registry.json), and each template directory carries its own committed `.mise.toml` for the local scaffold toolchain.
+The source of truth for template discovery lives in [templates/registry.json](/home/kimdongkudavid/develop/personal/dk-harness/templates/registry.json), and each template directory carries its own committed `mise.toml` for the local scaffold toolchain.
 
 ## CLI
 

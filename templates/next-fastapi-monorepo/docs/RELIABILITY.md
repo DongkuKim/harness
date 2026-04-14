@@ -2,7 +2,7 @@
 
 ## Local Commands
 
-Run from the repository root. The committed `.mise.toml` pins the local toolchain, so `mise install` should come first on a fresh machine:
+Run from the repository root. The committed `mise.toml` pins the local toolchain, so `mise install` should come first on a fresh machine:
 
 ```bash
 mise install
