@@ -69,46 +69,65 @@ jobs:
               {
                 name: "next-monorepo",
                 path: "templates/next-monorepo",
-                fast: {
-                  needs_python: false,
-                  needs_rust_nightly: false,
-                  rust_tools: "",
-                },
-                test: {
-                  needs_python: false,
-                  needs_rust: false,
-                  rust_tools: "",
+                change_key: "NEXT_MONOREPO_CHANGED",
+                lanes: {
+                  fast: {
+                    needs_python: false,
+                    needs_rust_nightly: false,
+                    rust_tools: "",
+                  },
+                  test: {
+                    needs_python: false,
+                    needs_rust: false,
+                    rust_tools: "",
+                  },
+                  ux: {},
                 },
               },
               {
                 name: "next-fastapi-monorepo",
                 path: "templates/next-fastapi-monorepo",
-                fast: {
-                  needs_python: true,
-                  needs_rust_nightly: false,
-                  rust_tools: "",
-                },
-                test: {
-                  needs_python: true,
-                  needs_rust: false,
-                  rust_tools: "",
+                change_key: "NEXT_FASTAPI_MONOREPO_CHANGED",
+                lanes: {
+                  fast: {
+                    needs_python: true,
+                    needs_rust_nightly: false,
+                    rust_tools: "",
+                  },
+                  test: {
+                    needs_python: true,
+                    needs_rust: false,
+                    rust_tools: "",
+                  },
+                  ux: {},
                 },
               },
               {
                 name: "next-axum-monorepo",
                 path: "templates/next-axum-monorepo",
-                fast: {
-                  needs_python: false,
-                  needs_rust_nightly: true,
-                  rust_tools: "cargo-udeps",
-                },
-                test: {
-                  needs_python: false,
-                  needs_rust: true,
-                  rust_tools: "cargo-nextest",
+                change_key: "NEXT_AXUM_MONOREPO_CHANGED",
+                lanes: {
+                  fast: {
+                    needs_python: false,
+                    needs_rust_nightly: true,
+                    rust_tools: "cargo-udeps",
+                  },
+                  test: {
+                    needs_python: false,
+                    needs_rust: true,
+                    rust_tools: "cargo-nextest",
+                  },
+                  ux: {},
                 },
               },
             ];
+            const buildMatrix = (templates, lane) => ({
+              template: templates.map((template) => ({
+                name: template.name,
+                path: template.path,
+                ...template.lanes[lane],
+              })),
+            });
 
             const runAll =
               process.env.EVENT_NAME === "workflow_dispatch" ||
@@ -116,36 +135,14 @@ jobs:
 
             const selectedTemplates = runAll
               ? allTemplates
-              : allTemplates.filter((template) => {
-                  const key = `${template.name.replace(/-/g, "_").toUpperCase()}_CHANGED`;
-                  return process.env[key] === "true";
-                });
-
-            const fastMatrix = {
-              template: selectedTemplates.map((template) => ({
-                name: template.name,
-                path: template.path,
-                ...template.fast,
-              })),
-            };
-            const testMatrix = {
-              template: selectedTemplates.map((template) => ({
-                name: template.name,
-                path: template.path,
-                ...template.test,
-              })),
-            };
-            const uxMatrix = {
-              template: selectedTemplates.map((template) => ({
-                name: template.name,
-                path: template.path,
-              })),
-            };
+              : allTemplates.filter(
+                  (template) => process.env[template.change_key] === "true"
+                );
 
             core.setOutput("should_run", selectedTemplates.length > 0 ? "true" : "false");
-            core.setOutput("fast_matrix", JSON.stringify(fastMatrix));
-            core.setOutput("test_matrix", JSON.stringify(testMatrix));
-            core.setOutput("ux_matrix", JSON.stringify(uxMatrix));
+            core.setOutput("fast_matrix", JSON.stringify(buildMatrix(selectedTemplates, "fast")));
+            core.setOutput("test_matrix", JSON.stringify(buildMatrix(selectedTemplates, "test")));
+            core.setOutput("ux_matrix", JSON.stringify(buildMatrix(selectedTemplates, "ux")));
 
   fast:
     needs: prepare
