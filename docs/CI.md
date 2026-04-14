@@ -1,9 +1,16 @@
 # CI
 
-The GitHub workflow in `.github/workflows/templates-ci.yml` validates the catalog per template.
+This repo now separates source-repo automation from template automation.
 
-## Lanes
+## Source Repo Workflow
 
+- `.github/workflows/repo-ci.yml` validates the `dk-harness` source repo itself.
+- `repo / self-check`: Python CLI compilation, local `dk-harness list`, and release tarball verification
+- `repo / supply-chain`: gitleaks, osv-scanner, and root `npm audit`
+
+## Template Workflow
+
+- `.github/workflows/templates-ci.yml` validates the catalog per template.
 - `fast`: lint and typecheck
 - `test`: unit and integration coverage
 - `ux`: Playwright-based UX checks
@@ -19,7 +26,8 @@ The GitHub workflow in `.github/workflows/templates-ci.yml` validates the catalo
 
 ## Operational Notes
 
-- CI should stay aligned with local commands in each template.
+- The root repo command surface is `just self-check` and `just supply-chain`.
+- CI should stay aligned with local commands in the root repo and in each template.
 - When a template adds a new required tool, update the template's own harness and the workflow matrix together.
 - When a repo-level change should invalidate every template, add its path to the shared-file filter in `.github/workflows/templates-ci.yml`.
-- CI is meant to catch template drift, not to duplicate every release-time check.
+- Template CI catches catalog drift. Repo CI catches source-repo release and supply-chain regressions.

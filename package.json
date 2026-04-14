@@ -22,6 +22,8 @@
     "dk-harness": "./bin/dk-harness"
   },
   "scripts": {
+    "repo:self-check": "node ./scripts/repo-self-check.mjs",
+    "repo:supply-chain": "node ./scripts/repo-supply-chain.mjs",
     "release:check": "node ./scripts/release-pack-check.mjs"
   },
   "files": [
