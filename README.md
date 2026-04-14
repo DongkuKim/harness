@@ -39,13 +39,17 @@ These are worth using no matter which stack a project uses.
 
 | Role | Recommended tools | Why |
 | --- | --- | --- |
-| Toolchain pinning | `mise` | Pin Node, Python, and Rust versions so agents and humans run the same toolchain. |
+| Toolchain pinning | `mise` | Commit the repo and template toolchains in `.mise.toml` so agents and humans run the same versions. |
 | Task runner | `just` | Gives the agent a small, predictable command surface such as `just lint` and `just test`. |
 | Git hooks | `lefthook` or `pre-commit` | Run fast checks before bad changes spread. |
 | CI | `GitHub Actions` | Standardize the same harness in automation. |
 | Dependency updates | `Renovate` | Keeps dependencies current without relying on memory. |
 | Secrets scanning | `gitleaks` | Prevents obvious security mistakes from landing. |
 | Repo-wide vuln scanning | `osv-scanner` | One simple cross-ecosystem supply-chain check. |
+
+## Bootstrap
+
+Run `mise install` at the repository root before using the CLI or any release checks. The committed [`.mise.toml`](.mise.toml) is the source of truth for the repo's pinned Node, pnpm, and Python versions.
 
 ## By Role
 
@@ -187,7 +191,7 @@ This repo can also act as a local template catalog.
 - `templates/next-axum-monorepo`
 - `templates/next-fastapi-monorepo`
 
-The source of truth for template discovery lives in [templates/registry.json](/home/kimdongkudavid/develop/personal/dk-harness/templates/registry.json).
+The source of truth for template discovery lives in [templates/registry.json](/home/kimdongkudavid/develop/personal/dk-harness/templates/registry.json), and each template directory carries its own committed `.mise.toml` for the local scaffold toolchain.
 
 ## CLI
 
@@ -229,7 +233,8 @@ The package should publish as `dk-harness`.
 
 Release prerequisites:
 
-- `python3` must be on `PATH` because the published binary is a Python script.
+- Run `mise install` first if you want the committed toolchain versions instead of relying on system binaries.
+- `python3` must be on `PATH` if you are not using `mise`, because the published binary is a Python script.
 - Node.js and npm must be available to run `npm exec`, `npx`, `npm pack`, and `npm publish`.
 
 Release gate:

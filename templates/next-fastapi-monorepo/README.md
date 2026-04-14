@@ -2,6 +2,8 @@
 
 This template ships a README-aligned harness for `apps/web` and `apps/api`.
 
+The template root `.mise.toml` is the source of truth for the local toolchain; run `mise install` before `just install` if you are not already inside a mise-managed shell.
+
 ## Harness Commands
 
 Run all top-level checks from the template root:

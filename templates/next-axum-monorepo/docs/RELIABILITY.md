@@ -2,9 +2,10 @@
 
 ## Local Commands
 
-Run from the repository root unless noted otherwise:
+Run from the repository root unless noted otherwise. The committed `.mise.toml` pins the local toolchain, so `mise install` should come first on a fresh machine:
 
 ```bash
+mise install
 just install
 pnpm dev
 just lint
