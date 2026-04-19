@@ -1,0 +1,18 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "app/page.tsx",
+    "components/theme-provider.tsx",
+    "next.config.mjs",
+    "postcss.config.mjs",
+    "playwright.config.ts",
+    "vitest.config.ts"
+  ],
+  "project": [
+    "app/**/*.{ts,tsx}",
+    "components/**/*.{ts,tsx}",
+    "tests/**/*.{ts,tsx}"
+  ],
+  "ignoreUnresolved": ["^\\./\\.next/dev/types/routes\\.d\\.ts$"],
+  "ignoreDependencies": ["@workspace/ui", "@tailwindcss/postcss"]
+}

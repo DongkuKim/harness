@@ -11,12 +11,12 @@ on:
 
 jobs:
   scaffold:
-    name: scaffold / ${{ matrix.template.name }}
+    name: scaffold / ${{ matrix.preset.name }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        template:
+        preset:
           - name: next-monorepo
             needs_python: false
             needs_rust: false
@@ -26,6 +26,12 @@ jobs:
           - name: next-axum-monorepo
             needs_python: false
             needs_rust: true
+          - name: next-fastapi-axum-monorepo
+            needs_python: true
+            needs_rust: true
+          - name: next-2x-fastapi-monorepo
+            needs_python: true
+            needs_rust: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -35,19 +41,17 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9.15.9
-      - if: matrix.template.needs_python
+      - if: matrix.preset.needs_python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - if: matrix.template.needs_python
+      - if: matrix.preset.needs_python
         uses: astral-sh/setup-uv@v6
-      - if: matrix.template.needs_rust
+      - if: matrix.preset.needs_rust
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt,clippy
       - run: >
           node ./scripts/scaffold-eval.mjs
-          --template "${{ matrix.template.name }}"
+          --preset "${{ matrix.preset.name }}"
           --target-root "${{ runner.temp }}/scaffold-eval"
-          ${{ matrix.template.needs_python && '--needs-python' || '' }}
-          ${{ matrix.template.needs_rust && '--needs-rust' || '' }}

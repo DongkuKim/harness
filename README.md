@@ -39,7 +39,7 @@ These are worth using no matter which stack a project uses.
 
 | Role | Recommended tools | Why |
 | --- | --- | --- |
-| Toolchain pinning | `mise` | Commit the repo toolchain in `.mise.toml` and each template toolchain in `mise.toml` so agents and humans run the same versions. |
+| Toolchain pinning | `mise` | Commit the repo toolchain in `.mise.toml` and each generated scaffold toolchain in `mise.toml` so agents and humans run the same versions. |
 | Task runner | `just` | Gives the agent a small, predictable command surface such as `just lint` and `just test`. |
 | Git hooks | `lefthook` or `pre-commit` | Run fast checks before bad changes spread. |
 | CI | `GitHub Actions` | Standardize the same harness in automation. |
@@ -198,27 +198,34 @@ The important thing is not just having tools, but making them block the kinds of
 - dependency vulnerabilities and leaked secrets
 - environment drift between local runs and CI
 
-## Templates
+## Modules And Presets
 
-This repo can also act as a local template catalog.
+This repo now acts as a module catalog plus a curated preset-fixture set.
 
-- `templates/next-monorepo`
-- `templates/next-axum-monorepo`
-- `templates/next-fastapi-monorepo`
+- [`templates/modules/`](templates/modules): source-of-truth scaffold modules
+- [`scaffolds/presets/`](scaffolds/presets): internal preset manifests used for CI and release verification
+- [`scaffolds/generated/`](scaffolds/generated): committed outputs generated from those preset manifests
 
-The source of truth for template discovery lives in [templates/registry.json](templates/registry.json), and each template directory carries its own committed `mise.toml` for the local scaffold toolchain.
+The public CLI exposes modules, not preset names. In v1, `core-monorepo` is required, `frontend-nextjs` is optional and fixed to `apps/web`, and backend runtimes are repeatable with explicit app ids.
 
 ## CLI
 
-Use [bin/dk-harness](bin/dk-harness) to scaffold from the local catalog:
+Use [bin/dk-harness](bin/dk-harness) to compose scaffolds from the local module catalog:
 
 ```bash
 ./bin/dk-harness list
-./bin/dk-harness next-monorepo my-app
-./bin/dk-harness new next-axum-monorepo my-service --init-git
+./bin/dk-harness new my-app \
+  --module core-monorepo \
+  --module frontend-nextjs
+./bin/dk-harness new my-stack \
+  --module core-monorepo \
+  --module frontend-nextjs \
+  --module backend-fastapi:api \
+  --module backend-axum:realtime \
+  --init-git
 ```
 
-The CLI copies from the local `templates/` directory, so edits made here immediately affect future scaffolds from this repo.
+The CLI composes directly from `templates/modules/`, so edits made there immediately affect future scaffolds from this repo.
 
 You can also expose the same CLI through npm because the repo now defines a package binary in [package.json](package.json).
 
@@ -226,14 +233,14 @@ Local repo usage with npm:
 
 ```bash
 npm exec --package . -- dk-harness list
-npm exec --package . -- dk-harness next-monorepo my-app
+npm exec --package . -- dk-harness new my-app --module core-monorepo --module frontend-nextjs
 ```
 
 If you publish the package to npm, consumers can run it without cloning the repo:
 
 ```bash
 npx dk-harness@latest list
-npx dk-harness@latest next-monorepo my-app
+npx dk-harness@latest new my-app --module core-monorepo --module frontend-nextjs
 ```
 
 The current CLI is a Python entrypoint, so machines using the npm binary still need `python3` available.
@@ -261,9 +268,10 @@ npm run release:check
 
 That command verifies all of the following against the packed tarball, not the working tree:
 
-- `bin/dk-harness`, `templates/`, `README.md`, and `LICENSE` are included
+- `bin/dk-harness`, the module catalog under `templates/modules/`, `README.md`, and `LICENSE` are included
+- committed generated fixtures under `scaffolds/generated/` are not included
 - the packaged CLI can run `dk-harness list`
-- scaffolding from the packaged CLI copies `.github/workflows/ci.yml`
+- composing every curated preset from the packaged CLI copies `.github/workflows/ci.yml`
 
 Suggested publish flow:
 
@@ -281,20 +289,28 @@ Manual GitHub Actions publish path:
 - Run `.github/workflows/npm-publish.yml` in dry-run mode first.
 - Re-run the same workflow with `dry_run: false` when the release tag is ready to publish.
 
-## Skills In Templates
+## Skills In Generated Scaffolds
 
-Skill-related project files follow the template if they are committed into the template directory.
+Skill-related project files follow the generated scaffold if they are committed into the source modules.
 
 - Keep project-level files such as `skills-lock.json` if you want every generated project to inherit them.
 - Leave out machine-local folders such as `.agents/`, `.claude/`, `node_modules/`, and build output.
 
-## Standalone Template Repos
+## Standalone Generated Repos
 
-If you also want each starter to live as its own GitHub repo, export from this repo and push from there:
+If you also want a composed scaffold to live as its own GitHub repo, export the same module set from this repo and push from there:
 
 ```bash
-./bin/dk-harness export next-monorepo ../dk-harness-next-monorepo --force
-./bin/dk-harness export next-axum-monorepo ../dk-harness-next-axum-monorepo --force
+./bin/dk-harness export ../dk-harness-next-monorepo \
+  --module core-monorepo \
+  --module frontend-nextjs \
+  --force
+./bin/dk-harness export ../dk-harness-mixed-runtime \
+  --module core-monorepo \
+  --module frontend-nextjs \
+  --module backend-fastapi:api \
+  --module backend-axum:realtime \
+  --force
 ```
 
-That keeps `dk-harness` as the source of truth locally while giving you separate repos to publish as template repositories on GitHub.
+That keeps `dk-harness` as the local source of truth while letting you publish generated downstream repos independently.

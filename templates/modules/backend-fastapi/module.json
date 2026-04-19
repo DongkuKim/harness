@@ -1,0 +1,26 @@
+{
+  "name": "backend-fastapi",
+  "kind": "runtime",
+  "runtime": "python",
+  "repeatable": true,
+  "default_app_id": "api",
+  "requires": [
+    "core-monorepo"
+  ],
+  "conflicts": [],
+  "emits": [
+    {
+      "source": "files/app",
+      "target": "apps/__APP_ID__"
+    }
+  ],
+  "check_metadata": {
+    "runnable": true,
+    "ux_capable": false,
+    "needs_python": true,
+    "needs_rust": false
+  },
+  "documentation": {
+    "app_summary": "FastAPI backend service"
+  }
+}

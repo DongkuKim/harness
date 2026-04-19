@@ -13,8 +13,8 @@ Plans are first-class artifacts in this repo.
 
 ## Root Repo Planning Expectations
 
-- Make template-impacting changes in small steps so regressions are easy to localize.
-- When a change affects release packaging, workflow behavior, or template scaffolding, document that relationship in the same change.
+- Make module- and preset-impacting changes in small steps so regressions are easy to localize.
+- When a change affects release packaging, workflow behavior, or scaffold composition, document that relationship in the same change.
 - Prefer versioned plan files over hidden external context for cross-session work.
 
 ## Required Sections For Execution Plans

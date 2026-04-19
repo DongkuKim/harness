@@ -1,0 +1,30 @@
+{
+  "name": "backend-axum",
+  "kind": "runtime",
+  "runtime": "rust",
+  "repeatable": true,
+  "default_app_id": "axum",
+  "requires": [
+    "core-monorepo"
+  ],
+  "conflicts": [],
+  "emits": [
+    {
+      "source": "files/app",
+      "target": "apps/__APP_ID__"
+    },
+    {
+      "source": "files/scripts",
+      "target": "scripts"
+    }
+  ],
+  "check_metadata": {
+    "runnable": true,
+    "ux_capable": false,
+    "needs_python": false,
+    "needs_rust": true
+  },
+  "documentation": {
+    "app_summary": "Axum backend service"
+  }
+}

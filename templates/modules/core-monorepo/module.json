@@ -1,0 +1,23 @@
+{
+  "name": "core-monorepo",
+  "kind": "foundation",
+  "runtime": "node",
+  "repeatable": false,
+  "requires": [],
+  "conflicts": [],
+  "emits": [
+    {
+      "source": "files/root",
+      "target": "."
+    }
+  ],
+  "check_metadata": {
+    "runnable": false,
+    "ux_capable": false,
+    "needs_python": false,
+    "needs_rust": false
+  },
+  "documentation": {
+    "app_summary": "Shared workspace packages and root harness files."
+  }
+}

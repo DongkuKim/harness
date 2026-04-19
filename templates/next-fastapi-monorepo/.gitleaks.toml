@@ -1,5 +1,0 @@
-title = "next-fastapi-monorepo gitleaks config"
-
-[extend]
-useDefault = true
-

@@ -1,4 +1,4 @@
-name: Template CI
+name: Scaffold Fixture CI
 
 on:
   pull_request:
@@ -9,7 +9,9 @@ on:
       - 'bin/**'
       - 'package.json'
       - 'scripts/**'
-      - 'templates/**'
+      - 'templates/modules/**'
+      - 'scaffolds/presets/**'
+      - 'scaffolds/generated/**'
   push:
     branches:
       - main
@@ -18,143 +20,46 @@ on:
       - 'bin/**'
       - 'package.json'
       - 'scripts/**'
-      - 'templates/**'
+      - 'templates/modules/**'
+      - 'scaffolds/presets/**'
+      - 'scaffolds/generated/**'
   workflow_dispatch:
 
 concurrency:
-  group: template-ci-${{ github.workflow }}-${{ github.ref }}
+  group: scaffold-fixtures-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  prepare:
-    name: Prepare matrix
-    runs-on: ubuntu-latest
-    outputs:
-      should_run: ${{ steps.build.outputs.should_run }}
-      fast_matrix: ${{ steps.build.outputs.fast_matrix }}
-      test_matrix: ${{ steps.build.outputs.test_matrix }}
-      ux_matrix: ${{ steps.build.outputs.ux_matrix }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - id: changes
-        if: github.event_name != 'workflow_dispatch'
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            shared:
-              - '.github/workflows/templates-ci.yml'
-              - 'bin/**'
-              - 'package.json'
-              - 'scripts/**'
-              - 'templates/registry.json'
-            next_monorepo:
-              - 'templates/next-monorepo/**'
-            next_fastapi_monorepo:
-              - 'templates/next-fastapi-monorepo/**'
-            next_axum_monorepo:
-              - 'templates/next-axum-monorepo/**'
-      - id: build
-        uses: actions/github-script@v7
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          SHARED_CHANGED: ${{ steps.changes.outputs.shared }}
-          NEXT_MONOREPO_CHANGED: ${{ steps.changes.outputs.next_monorepo }}
-          NEXT_FASTAPI_MONOREPO_CHANGED: ${{ steps.changes.outputs.next_fastapi_monorepo }}
-          NEXT_AXUM_MONOREPO_CHANGED: ${{ steps.changes.outputs.next_axum_monorepo }}
-        with:
-          script: |
-            const allTemplates = [
-              {
-                name: "next-monorepo",
-                path: "templates/next-monorepo",
-                change_key: "NEXT_MONOREPO_CHANGED",
-                lanes: {
-                  fast: {
-                    needs_python: false,
-                    needs_rust_nightly: false,
-                    rust_tools: "",
-                  },
-                  test: {
-                    needs_python: false,
-                    needs_rust: false,
-                    rust_tools: "",
-                  },
-                  ux: {},
-                },
-              },
-              {
-                name: "next-fastapi-monorepo",
-                path: "templates/next-fastapi-monorepo",
-                change_key: "NEXT_FASTAPI_MONOREPO_CHANGED",
-                lanes: {
-                  fast: {
-                    needs_python: true,
-                    needs_rust_nightly: false,
-                    rust_tools: "",
-                  },
-                  test: {
-                    needs_python: true,
-                    needs_rust: false,
-                    rust_tools: "",
-                  },
-                  ux: {},
-                },
-              },
-              {
-                name: "next-axum-monorepo",
-                path: "templates/next-axum-monorepo",
-                change_key: "NEXT_AXUM_MONOREPO_CHANGED",
-                lanes: {
-                  fast: {
-                    needs_python: false,
-                    needs_rust_nightly: true,
-                    rust_tools: "cargo-udeps",
-                  },
-                  test: {
-                    needs_python: false,
-                    needs_rust: true,
-                    rust_tools: "cargo-nextest",
-                  },
-                  ux: {},
-                },
-              },
-            ];
-            const buildMatrix = (templates, lane) => ({
-              template: templates.map((template) => ({
-                name: template.name,
-                path: template.path,
-                ...template.lanes[lane],
-              })),
-            });
-
-            const runAll =
-              process.env.EVENT_NAME === "workflow_dispatch" ||
-              process.env.SHARED_CHANGED === "true";
-
-            const selectedTemplates = runAll
-              ? allTemplates
-              : allTemplates.filter(
-                  (template) => process.env[template.change_key] === "true"
-                );
-
-            core.setOutput("should_run", selectedTemplates.length > 0 ? "true" : "false");
-            core.setOutput("fast_matrix", JSON.stringify(buildMatrix(selectedTemplates, "fast")));
-            core.setOutput("test_matrix", JSON.stringify(buildMatrix(selectedTemplates, "test")));
-            core.setOutput("ux_matrix", JSON.stringify(buildMatrix(selectedTemplates, "ux")));
-
   fast:
-    needs: prepare
-    if: needs.prepare.outputs.should_run == 'true'
-    name: ${{ matrix.template.name }} / fast
+    name: ${{ matrix.fixture.name }} / fast
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.prepare.outputs.fast_matrix) }}
+      matrix:
+        fixture:
+          - name: next-monorepo
+            path: scaffolds/generated/next-monorepo
+            needs_python: false
+            needs_rust: false
+          - name: next-fastapi-monorepo
+            path: scaffolds/generated/next-fastapi-monorepo
+            needs_python: true
+            needs_rust: false
+          - name: next-axum-monorepo
+            path: scaffolds/generated/next-axum-monorepo
+            needs_python: false
+            needs_rust: true
+          - name: next-fastapi-axum-monorepo
+            path: scaffolds/generated/next-fastapi-axum-monorepo
+            needs_python: true
+            needs_rust: true
+          - name: next-2x-fastapi-monorepo
+            path: scaffolds/generated/next-2x-fastapi-monorepo
+            needs_python: true
+            needs_rust: false
     defaults:
       run:
-        working-directory: ${{ matrix.template.path }}
+        working-directory: ${{ matrix.fixture.path }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -164,37 +69,50 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9.15.9
-      - if: matrix.template.needs_python
+      - if: matrix.fixture.needs_python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - if: matrix.template.needs_python
+      - if: matrix.fixture.needs_python
         uses: astral-sh/setup-uv@v6
-      - if: matrix.template.needs_rust_nightly
-        uses: dtolnay/rust-toolchain@nightly
+      - if: matrix.fixture.needs_rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt,clippy,rust-src
-      - if: matrix.template.rust_tools != ''
-        uses: taiki-e/install-action@v2
-        with:
-          tool: ${{ matrix.template.rust_tools }}
-      - run: pnpm install --frozen-lockfile
-      - if: matrix.template.needs_python
-        run: (cd apps/api && uv sync --group dev)
+          components: rustfmt,clippy
+      - run: just install
       - run: just lint
       - run: just typecheck
 
   test:
-    needs: prepare
-    if: needs.prepare.outputs.should_run == 'true'
-    name: ${{ matrix.template.name }} / test
+    name: ${{ matrix.fixture.name }} / test
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.prepare.outputs.test_matrix) }}
+      matrix:
+        fixture:
+          - name: next-monorepo
+            path: scaffolds/generated/next-monorepo
+            needs_python: false
+            needs_rust: false
+          - name: next-fastapi-monorepo
+            path: scaffolds/generated/next-fastapi-monorepo
+            needs_python: true
+            needs_rust: false
+          - name: next-axum-monorepo
+            path: scaffolds/generated/next-axum-monorepo
+            needs_python: false
+            needs_rust: true
+          - name: next-fastapi-axum-monorepo
+            path: scaffolds/generated/next-fastapi-axum-monorepo
+            needs_python: true
+            needs_rust: true
+          - name: next-2x-fastapi-monorepo
+            path: scaffolds/generated/next-2x-fastapi-monorepo
+            needs_python: true
+            needs_rust: false
     defaults:
       run:
-        working-directory: ${{ matrix.template.path }}
+        working-directory: ${{ matrix.fixture.path }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -204,34 +122,49 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9.15.9
-      - if: matrix.template.needs_python
+      - if: matrix.fixture.needs_python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - if: matrix.template.needs_python
+      - if: matrix.fixture.needs_python
         uses: astral-sh/setup-uv@v6
-      - if: matrix.template.needs_rust
+      - if: matrix.fixture.needs_rust
         uses: dtolnay/rust-toolchain@stable
-      - if: matrix.template.rust_tools != ''
-        uses: taiki-e/install-action@v2
         with:
-          tool: ${{ matrix.template.rust_tools }}
-      - run: pnpm install --frozen-lockfile
-      - if: matrix.template.needs_python
-        run: (cd apps/api && uv sync --group dev)
+          components: rustfmt,clippy
+      - run: just install
       - run: just test
 
   ux:
-    needs: prepare
-    if: needs.prepare.outputs.should_run == 'true'
-    name: ${{ matrix.template.name }} / ux
+    name: ${{ matrix.fixture.name }} / ux
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.prepare.outputs.ux_matrix) }}
+      matrix:
+        fixture:
+          - name: next-monorepo
+            path: scaffolds/generated/next-monorepo
+            needs_python: false
+            needs_rust: false
+          - name: next-fastapi-monorepo
+            path: scaffolds/generated/next-fastapi-monorepo
+            needs_python: true
+            needs_rust: false
+          - name: next-axum-monorepo
+            path: scaffolds/generated/next-axum-monorepo
+            needs_python: false
+            needs_rust: true
+          - name: next-fastapi-axum-monorepo
+            path: scaffolds/generated/next-fastapi-axum-monorepo
+            needs_python: true
+            needs_rust: true
+          - name: next-2x-fastapi-monorepo
+            path: scaffolds/generated/next-2x-fastapi-monorepo
+            needs_python: true
+            needs_rust: false
     defaults:
       run:
-        working-directory: ${{ matrix.template.path }}
+        working-directory: ${{ matrix.fixture.path }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -241,6 +174,67 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9.15.9
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      - if: matrix.fixture.needs_python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - if: matrix.fixture.needs_python
+        uses: astral-sh/setup-uv@v6
+      - if: matrix.fixture.needs_rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt,clippy
+      - run: just install
       - run: just ux
+
+  supply-chain:
+    name: ${{ matrix.fixture.name }} / supply-chain
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        fixture:
+          - name: next-monorepo
+            path: scaffolds/generated/next-monorepo
+            needs_python: false
+            needs_rust: false
+          - name: next-fastapi-monorepo
+            path: scaffolds/generated/next-fastapi-monorepo
+            needs_python: true
+            needs_rust: false
+          - name: next-axum-monorepo
+            path: scaffolds/generated/next-axum-monorepo
+            needs_python: false
+            needs_rust: true
+          - name: next-fastapi-axum-monorepo
+            path: scaffolds/generated/next-fastapi-axum-monorepo
+            needs_python: true
+            needs_rust: true
+          - name: next-2x-fastapi-monorepo
+            path: scaffolds/generated/next-2x-fastapi-monorepo
+            needs_python: true
+            needs_rust: false
+    defaults:
+      run:
+        working-directory: ${{ matrix.fixture.path }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: extractions/setup-just@v2
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - if: matrix.fixture.needs_python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - if: matrix.fixture.needs_python
+        uses: astral-sh/setup-uv@v6
+      - if: matrix.fixture.needs_rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt,clippy
+      - run: just install
+      - run: just supply-chain

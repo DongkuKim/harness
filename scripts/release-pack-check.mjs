@@ -45,10 +45,11 @@ function assert(condition, message) {
 
 const requiredTarEntries = [
   "package/bin/dk-harness",
+  "package/bin/dk_harness_compose.py",
   "package/README.md",
   "package/LICENSE",
-  "package/templates/registry.json",
-  "package/templates/next-monorepo/.github/workflows/ci.yml",
+  "package/templates/modules/core-monorepo/module.json",
+  "package/templates/modules/frontend-nextjs/module.json",
 ];
 
 const tempRoot = mkdtempSync(path.join(os.tmpdir(), "dk-harness-release-"));
@@ -87,15 +88,26 @@ try {
     "list",
   ]);
   assert(
-    listOutput.stdout.includes("Available templates:"),
-    "Expected template list output from packaged CLI.",
+    listOutput.stdout.includes("Available modules:"),
+    "Expected module list output from packaged CLI.",
   );
 
-  const registry = JSON.parse(readFileSync(path.join(repoRoot, "templates", "registry.json"), "utf8"));
-  for (const template of registry.templates) {
-    const targetDir = path.join(scaffoldDir, template.name);
+  assert(
+    !Array.from(tarEntries).some((entry) => entry.startsWith("package/scaffolds/generated/")),
+    "Committed generated scaffold fixtures should not be included in the npm tarball.",
+  );
 
-    console.log(`Running installed package smoke test: scaffold ${template.name}`);
+  const presetsRoot = path.join(repoRoot, "scaffolds", "presets");
+  const presetEntries = run("find", [presetsRoot, "-maxdepth", "1", "-type", "f", "-name", "*.json"])
+    .stdout.split("\n")
+    .filter(Boolean)
+    .sort();
+
+  for (const presetPath of presetEntries) {
+    const preset = JSON.parse(readFileSync(presetPath, "utf8"));
+    const targetDir = path.join(scaffoldDir, preset.name);
+
+    console.log(`Running installed package smoke test: scaffold ${preset.name}`);
     run("npm", [
       "exec",
       "--yes",
@@ -104,13 +116,13 @@ try {
       "--",
       "dk-harness",
       "new",
-      template.name,
       targetDir,
+      ...preset.modules.flatMap((moduleSpec) => ["--module", moduleSpec]),
     ]);
 
     assert(
       existsSync(path.join(targetDir, ".github", "workflows", "ci.yml")),
-      `Expected scaffolded ${template.name} project to include .github/workflows/ci.yml.`,
+      `Expected scaffolded ${preset.name} project to include .github/workflows/ci.yml.`,
     );
   }
 

@@ -1,0 +1,26 @@
+{
+  "name": "frontend-nextjs",
+  "kind": "app",
+  "runtime": "node",
+  "repeatable": false,
+  "default_app_id": "web",
+  "requires": [
+    "core-monorepo"
+  ],
+  "conflicts": [],
+  "emits": [
+    {
+      "source": "files/app",
+      "target": "apps/web"
+    }
+  ],
+  "check_metadata": {
+    "runnable": true,
+    "ux_capable": true,
+    "needs_python": false,
+    "needs_rust": false
+  },
+  "documentation": {
+    "app_summary": "Next.js app"
+  }
+}

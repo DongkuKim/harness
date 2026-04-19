@@ -1,0 +1,9 @@
+{
+  "name": "next-2x-fastapi-monorepo",
+  "modules": [
+    "core-monorepo",
+    "frontend-nextjs",
+    "backend-fastapi:api",
+    "backend-fastapi:admin-api"
+  ]
+}

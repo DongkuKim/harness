@@ -1,0 +1,8 @@
+{
+  "name": "next-axum-monorepo",
+  "modules": [
+    "core-monorepo",
+    "frontend-nextjs",
+    "backend-axum:axum"
+  ]
+}

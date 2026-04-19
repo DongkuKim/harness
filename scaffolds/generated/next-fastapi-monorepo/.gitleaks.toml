@@ -1,0 +1,4 @@
+title = "composable-scaffold gitleaks config"
+
+[extend]
+useDefault = true

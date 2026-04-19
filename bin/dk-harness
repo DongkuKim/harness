@@ -3,136 +3,11 @@
 from __future__ import annotations
 
 import argparse
-import json
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-
-IGNORE_NAMES = {
-    ".DS_Store",
-    ".agents",
-    ".claude",
-    ".git",
-    ".next",
-    ".venv",
-    ".turbo",
-    "__pycache__",
-    "build",
-    "dist",
-    "node_modules",
-    "target",
-}
-
-REPO_ROOT = Path(__file__).resolve().parent.parent
-REGISTRY_PATH = REPO_ROOT / "templates" / "registry.json"
-
-ALLOWED_STACKS = {"nextjs", "axum", "fastapi"}
-ALLOWED_RUNTIMES = {"node", "python", "rust"}
-ALLOWED_LANES = {"web", "full-stack"}
-
-
-def validate_registry_entry(entry: dict[str, object]) -> None:
-    required_fields = {"name", "path", "repo", "description", "metadata"}
-    missing_fields = sorted(required_fields.difference(entry))
-    if missing_fields:
-        raise SystemExit(
-            "Invalid registry entry: "
-            f"missing fields {', '.join(missing_fields)}"
-        )
-
-    for field_name in ("name", "path", "repo", "description"):
-        value = entry[field_name]
-        if not isinstance(value, str) or not value:
-            raise SystemExit(
-                "Invalid registry entry for "
-                f"{entry['name']!r}: {field_name} must be a non-empty string"
-            )
-
-    metadata = entry["metadata"]
-    if not isinstance(metadata, dict):
-        raise SystemExit(
-            f"Invalid registry entry for {entry['name']!r}: metadata must be an object"
-        )
-
-    for field_name, allowed_values in (
-        ("stack", ALLOWED_STACKS),
-        ("runtime", ALLOWED_RUNTIMES),
-        ("lane", ALLOWED_LANES),
-    ):
-        values = metadata.get(field_name)
-        if not isinstance(values, list) or not values:
-            raise SystemExit(
-                "Invalid registry entry for "
-                f"{entry['name']!r}: metadata.{field_name} must be a non-empty list"
-            )
-
-        invalid_values = [
-            value for value in values if not isinstance(value, str) or value not in allowed_values
-        ]
-        if invalid_values:
-            allowed = ", ".join(sorted(allowed_values))
-            invalid_display = ", ".join(repr(value) for value in invalid_values)
-            raise SystemExit(
-                "Invalid registry entry for "
-                f"{entry['name']!r}: metadata.{field_name} contains unsupported values "
-                f"{invalid_display}; "
-                f"allowed values: {allowed}"
-            )
-
-
-def load_registry() -> dict[str, dict[str, object]]:
-    data = json.loads(REGISTRY_PATH.read_text())
-    templates = data.get("templates")
-    if not isinstance(templates, list):
-        raise SystemExit("Invalid registry: templates must be a list")
-
-    registry: dict[str, dict[str, object]] = {}
-    for entry in templates:
-        if not isinstance(entry, dict):
-            raise SystemExit("Invalid registry: each template must be an object")
-
-        validate_registry_entry(entry)
-        name = entry["name"]
-        if not isinstance(name, str) or not name:
-            raise SystemExit("Invalid registry entry: name must be a non-empty string")
-        if name in registry:
-            raise SystemExit(f"Invalid registry: duplicate template name {name!r}")
-        registry[name] = entry
-
-    return registry
-
-
-def ignore_filter(_: str, names: list[str]) -> set[str]:
-    return {name for name in names if name in IGNORE_NAMES}
-
-
-def ensure_destination(path: Path, force: bool) -> None:
-    if not path.exists():
-        path.parent.mkdir(parents=True, exist_ok=True)
-        return
-
-    if not path.is_dir():
-        raise SystemExit(f"Destination exists and is not a directory: {path}")
-
-    if any(path.iterdir()):
-        if not force:
-            raise SystemExit(
-                f"Destination is not empty: {path}\n"
-                "Re-run with --force to replace it."
-            )
-        shutil.rmtree(path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-
-def copy_template(template: dict[str, object], destination: Path, force: bool) -> None:
-    source = REPO_ROOT / str(template["path"])
-    if not source.exists():
-        raise SystemExit(f"Template path does not exist: {source}")
-
-    ensure_destination(destination, force)
-    shutil.copytree(source, destination, ignore=ignore_filter, dirs_exist_ok=True)
+from dk_harness_compose import compose_scaffold, load_module_definitions, parse_module_specs
 
 
 def init_git_repo(destination: Path) -> None:
@@ -145,134 +20,120 @@ def init_git_repo(destination: Path) -> None:
     )
 
 
-def print_template_list(registry: dict[str, dict[str, object]]) -> None:
-    print("Available templates:")
-    for name in sorted(registry):
-        entry = registry[name]
-        metadata = entry["metadata"]
-        assert isinstance(metadata, dict)
-        stack = ", ".join(metadata["stack"])
-        runtime = ", ".join(metadata["runtime"])
-        lane = ", ".join(metadata["lane"])
-        print(f"- {name}: {entry['description']}")
-        print(f"  stack:   {stack}")
-        print(f"  runtime: {runtime}")
-        print(f"  lane:    {lane}")
-        print(f"  local:   {entry['path']}")
-        print(f"  repo:    {entry['repo']}")
-
-
-def resolve_template(registry: dict[str, dict[str, object]], template_name: str) -> dict[str, object]:
-    try:
-        return registry[template_name]
-    except KeyError as exc:
-        known = ", ".join(sorted(registry))
-        raise SystemExit(
-            f"Unknown template: {template_name}\nKnown templates: {known}"
-        ) from exc
+def print_module_list(definitions: dict[str, object]) -> None:
+    print("Available modules:")
+    for name in sorted(definitions):
+        definition = definitions[name]
+        requires = ", ".join(definition.requires) if definition.requires else "none"
+        conflicts = ", ".join(definition.conflicts) if definition.conflicts else "none"
+        repeatable = "yes" if definition.repeatable else "no"
+        print(f"- {definition.name}: {definition.documentation['app_summary']}")
+        print(f"  kind:            {definition.kind}")
+        print(f"  runtime:         {definition.runtime}")
+        print(f"  repeatable:      {repeatable}")
+        print(f"  requires:        {requires}")
+        print(f"  conflicts:       {conflicts}")
+        if definition.default_app_id:
+            print(f"  default app id:  {definition.default_app_id}")
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dk-harness",
-        description="Scaffold projects from the local harness template registry.",
+        description="Compose projects from the local harness module catalog.",
     )
     subparsers = parser.add_subparsers(dest="command")
 
-    subparsers.add_parser("list", help="List available templates.")
+    subparsers.add_parser("list", help="List available scaffold modules.")
 
-    new_parser = subparsers.add_parser("new", help="Create a new project from a template.")
-    new_parser.add_argument("template")
-    new_parser.add_argument("destination", nargs="?")
+    new_parser = subparsers.add_parser("new", help="Create a new project from selected modules.")
+    new_parser.add_argument("destination")
+    new_parser.add_argument(
+        "--module",
+        action="append",
+        dest="modules",
+        default=[],
+        help="Module spec in the form <module> or <module>:<app-id>. Repeat the flag to compose multiple modules.",
+    )
     new_parser.add_argument("--force", action="store_true")
     new_parser.add_argument("--init-git", action="store_true")
 
     export_parser = subparsers.add_parser(
         "export",
-        help="Copy a template to another directory, useful for syncing standalone template repos.",
+        help="Compose a scaffold into another directory, useful for syncing standalone generated fixtures.",
     )
-    export_parser.add_argument("template")
     export_parser.add_argument("destination")
+    export_parser.add_argument(
+        "--module",
+        action="append",
+        dest="modules",
+        default=[],
+        help="Module spec in the form <module> or <module>:<app-id>. Repeat the flag to compose multiple modules.",
+    )
     export_parser.add_argument("--force", action="store_true")
 
     return parser
 
 
 def run_new(
-    registry: dict[str, dict[str, object]],
-    template_name: str,
-    destination: str | None,
+    definitions: dict[str, object],
+    destination: str,
     *,
+    module_specs: list[str],
     force: bool,
     init_git: bool,
 ) -> int:
-    template = resolve_template(registry, template_name)
-    target = Path(destination or template_name).resolve()
-    copy_template(template, target, force=force)
+    target = Path(destination).resolve()
+    instances = parse_module_specs(module_specs, definitions)
+    compose_scaffold(instances, target, force=force)
 
     if init_git:
         init_git_repo(target)
 
-    print(f"Created {target} from template '{template_name}'.")
+    print(f"Created {target} from module composition.")
     if init_git:
         print("Initialized a new git repository.")
     return 0
 
 
 def run_export(
-    registry: dict[str, dict[str, object]],
-    template_name: str,
+    definitions: dict[str, object],
     destination: str,
     *,
+    module_specs: list[str],
     force: bool,
 ) -> int:
-    template = resolve_template(registry, template_name)
     target = Path(destination).resolve()
-    copy_template(template, target, force=force)
-    print(f"Exported '{template_name}' to {target}.")
-    print(f"Configured standalone repo: {template['repo']}")
+    instances = parse_module_specs(module_specs, definitions)
+    compose_scaffold(instances, target, force=force)
+    print(f"Exported module composition to {target}.")
     return 0
 
 
 def main(argv: list[str]) -> int:
-    registry = load_registry()
+    definitions = load_module_definitions()
     parser = build_parser()
-
-    if len(argv) > 1 and argv[1] not in {"list", "new", "export", "-h", "--help"}:
-        shorthand_parser = argparse.ArgumentParser(add_help=False)
-        shorthand_parser.add_argument("template")
-        shorthand_parser.add_argument("destination", nargs="?")
-        shorthand_parser.add_argument("--force", action="store_true")
-        shorthand_parser.add_argument("--init-git", action="store_true")
-        shorthand_args = shorthand_parser.parse_args(argv[1:])
-        return run_new(
-            registry,
-            shorthand_args.template,
-            shorthand_args.destination,
-            force=shorthand_args.force,
-            init_git=shorthand_args.init_git,
-        )
 
     args = parser.parse_args(argv[1:])
 
     if args.command == "list":
-        print_template_list(registry)
+        print_module_list(definitions)
         return 0
 
     if args.command == "new":
         return run_new(
-            registry,
-            args.template,
+            definitions,
             args.destination,
+            module_specs=args.modules,
             force=args.force,
             init_git=args.init_git,
         )
 
     if args.command == "export":
         return run_export(
-            registry,
-            args.template,
+            definitions,
             args.destination,
+            module_specs=args.modules,
             force=args.force,
         )
 

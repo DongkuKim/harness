@@ -1,0 +1,36 @@
+set shell := ["bash", "-cu"]
+
+install:
+  mise install
+  pnpm install
+  (cd apps/api && uv sync --group dev)
+  (cd apps/admin-api && uv sync --group dev)
+  pnpm exec playwright install chromium
+
+lint:
+  pnpm --filter web lint
+  pnpm --dir packages/ui exec depcruise --config dependency-cruiser.cjs src
+  pnpm --filter api lint
+  pnpm --filter admin-api lint
+
+typecheck:
+  pnpm --filter web typecheck
+  pnpm --filter api typecheck
+  pnpm --filter admin-api typecheck
+
+test:
+  pnpm --filter web test
+  pnpm --filter api test
+  pnpm --filter admin-api test
+
+ux:
+  pnpm --filter web ux
+
+supply-chain:
+  gitleaks dir . --config .gitleaks.toml
+  osv-scanner scan source -r .
+  pnpm audit --audit-level=high
+  pnpm --filter api supply-chain
+  pnpm --filter admin-api supply-chain
+
+ci: lint typecheck test ux supply-chain

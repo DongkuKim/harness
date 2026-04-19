@@ -1,0 +1,9 @@
+{
+  "name": "next-fastapi-axum-monorepo",
+  "modules": [
+    "core-monorepo",
+    "frontend-nextjs",
+    "backend-fastapi:api",
+    "backend-axum:realtime"
+  ]
+}
