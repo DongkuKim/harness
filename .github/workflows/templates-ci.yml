@@ -29,6 +29,9 @@ concurrency:
   group: scaffold-fixtures-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  GITHUB_TOKEN: ${{ github.token }}
+
 jobs:
   fast:
     name: ${{ matrix.fixture.name }} / fast
