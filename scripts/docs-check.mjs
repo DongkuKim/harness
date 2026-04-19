@@ -9,12 +9,13 @@ const ROOT_REQUIRED_FILES = [
   "AGENTS.md",
   "ARCHITECTURE.md",
   "docs/README.md",
-  "docs/CI.md",
-  "docs/EXPECTATIONS.md",
-  "docs/RELEASE.md",
+  "docs/RELIABILITY.md",
+  "docs/PLANS.md",
+  "docs/QUALITY_SCORE.md",
+  "docs/SECURITY.md",
 ];
 
-const TEMPLATE_REQUIRED_FILES = [
+const GENERATED_SCAFFOLD_REQUIRED_FILES = [
   "AGENTS.md",
   "ARCHITECTURE.md",
   "README.md",
@@ -36,18 +37,6 @@ const TEMPLATE_REQUIRED_FILES = [
   "docs/product-specs/index.md",
   "docs/product-specs/new-user-onboarding.md",
 ];
-
-const STACK_KEYWORDS = {
-  nextjs: /Next\.js/i,
-  fastapi: /FastAPI/i,
-  axum: /Axum/i,
-};
-
-const RUNTIME_TOOLS = {
-  node: ["node", "pnpm"],
-  python: ["python", "uv"],
-  rust: ["rust"],
-};
 
 const errors = [];
 
@@ -76,7 +65,7 @@ function walkMarkdown(relativeDir) {
   for (const entry of entries) {
     const childRelativePath = path.posix.join(relativeDir, entry.name);
     if (entry.isDirectory()) {
-      if (childRelativePath.includes("/references")) {
+      if (childRelativePath.includes("/references") || entry.name === "node_modules") {
         continue;
       }
       files.push(...walkMarkdown(childRelativePath));
@@ -97,7 +86,7 @@ function collectMarkdownFiles() {
     "AGENTS.md",
     "ARCHITECTURE.md",
     ...walkMarkdown("docs"),
-    ...walkMarkdown("templates"),
+    ...walkMarkdown("scaffolds/generated"),
   ];
 }
 
@@ -169,65 +158,21 @@ function validateJustReferences(templatePath) {
   }
 }
 
-function validateRegistryMetadata(templateEntry) {
-  const templatePath = templateEntry.path;
-  const readme = readText(path.posix.join(templatePath, "README.md"));
-  const miseToml = readText(path.posix.join(templatePath, "mise.toml"));
-  const metadata = templateEntry.metadata ?? {};
-  const stacks = new Set(metadata.stack ?? []);
-  const runtimes = new Set(metadata.runtime ?? []);
-  const lanes = new Set(metadata.lane ?? []);
-
-  for (const [stackName, pattern] of Object.entries(STACK_KEYWORDS)) {
-    const hasKeyword = pattern.test(readme);
-    if (stacks.has(stackName) && !hasKeyword) {
-      report(`${templatePath}: registry stack ${stackName} is not reflected in README.md`);
-    }
-    if (!stacks.has(stackName) && stackName !== "nextjs" && hasKeyword) {
-      report(`${templatePath}: README.md mentions ${stackName} but registry metadata does not`);
-    }
-  }
-
-  for (const runtimeName of runtimes) {
-    const requiredTools = RUNTIME_TOOLS[runtimeName] ?? [];
-    for (const toolName of requiredTools) {
-      if (!new RegExp(`^${toolName}\\s*=`, "m").test(miseToml)) {
-        report(`${templatePath}: runtime ${runtimeName} is missing tool ${toolName} in mise.toml`);
-      }
-    }
-  }
-
-  const hasPythonApi = exists(path.posix.join(templatePath, "apps/api/package.json"));
-  const hasRustApi = exists(path.posix.join(templatePath, "apps/axum/Cargo.toml"));
-
-  if (lanes.has("web") && (hasPythonApi || hasRustApi)) {
-    report(`${templatePath}: lane metadata says web-only, but backend app files exist`);
-  }
-
-  if (lanes.has("full-stack") && !hasPythonApi && !hasRustApi) {
-    report(`${templatePath}: lane metadata says full-stack, but no backend app was found`);
-  }
-
-  if (runtimes.has("python") && !hasPythonApi) {
-    report(`${templatePath}: runtime metadata expects Python, but apps/api is missing`);
-  }
-
-  if (runtimes.has("rust") && !hasRustApi) {
-    report(`${templatePath}: runtime metadata expects Rust, but apps/axum is missing`);
-  }
-}
-
 function main() {
   validateRequiredFiles(ROOT_REQUIRED_FILES, "root repo");
 
-  const registry = JSON.parse(readText("templates/registry.json"));
-  for (const templateEntry of registry.templates) {
-    const requiredFiles = TEMPLATE_REQUIRED_FILES.map((relativePath) =>
-      path.posix.join(templateEntry.path, relativePath),
+  const generatedRoot = path.join(repoRoot, "scaffolds", "generated");
+  for (const entry of readdirSync(generatedRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    const scaffoldPath = path.posix.join("scaffolds/generated", entry.name);
+    const requiredFiles = GENERATED_SCAFFOLD_REQUIRED_FILES.map((relativePath) =>
+      path.posix.join(scaffoldPath, relativePath),
     );
-    validateRequiredFiles(requiredFiles, templateEntry.name);
-    validateJustReferences(templateEntry.path);
-    validateRegistryMetadata(templateEntry);
+    validateRequiredFiles(requiredFiles, entry.name);
+    validateJustReferences(scaffoldPath);
   }
 
   for (const relativePath of collectMarkdownFiles()) {

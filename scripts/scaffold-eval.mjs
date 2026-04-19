@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,17 +8,15 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 
 function parseArgs(argv) {
   const options = {
-    template: "",
+    preset: "",
     targetRoot: "",
-    needsPython: false,
-    needsRust: false,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
 
-    if (arg === "--template") {
-      options.template = argv[index + 1] ?? "";
+    if (arg === "--preset") {
+      options.preset = argv[index + 1] ?? "";
       index += 1;
       continue;
     }
@@ -29,18 +27,10 @@ function parseArgs(argv) {
       continue;
     }
 
-    if (arg === "--needs-python") {
-      options.needsPython = true;
-      continue;
-    }
-
-    if (arg === "--needs-rust") {
-      options.needsRust = true;
-    }
   }
 
-  if (!options.template) {
-    throw new Error("Missing required --template argument.");
+  if (!options.preset) {
+    throw new Error("Missing required --preset argument.");
   }
 
   return options;
@@ -87,10 +77,10 @@ function assert(condition, message) {
 const options = parseArgs(process.argv.slice(2));
 const targetRoot = options.targetRoot ? path.resolve(options.targetRoot) : os.tmpdir();
 mkdirSync(targetRoot, { recursive: true });
-const tempRoot = mkdtempSync(path.join(targetRoot, `${options.template}-`));
+const tempRoot = mkdtempSync(path.join(targetRoot, `${options.preset}-`));
 
 try {
-  console.log(`Scaffold evaluation for ${options.template}`);
+  console.log(`Scaffold evaluation for ${options.preset}`);
 
   const packDir = path.join(tempRoot, "pack");
   const scaffoldRoot = path.join(tempRoot, "scaffold");
@@ -102,8 +92,11 @@ try {
   const [packResult] = JSON.parse(packOutput.stdout);
   const tarballPath = path.join(packDir, packResult.filename);
 
-  const scaffoldDir = path.join(scaffoldRoot, options.template);
-  console.log(`Scaffolding ${options.template} into ${scaffoldDir}`);
+  const presetPath = path.join(repoRoot, "scaffolds", "presets", `${options.preset}.json`);
+  const preset = JSON.parse(readFileSync(presetPath, "utf8"));
+
+  const scaffoldDir = path.join(scaffoldRoot, options.preset);
+  console.log(`Scaffolding ${options.preset} into ${scaffoldDir}`);
   run("npm", [
     "exec",
     "--yes",
@@ -112,24 +105,36 @@ try {
     "--",
     "dk-harness",
     "new",
-    options.template,
     scaffoldDir,
+    ...preset.modules.flatMap((moduleSpec) => ["--module", moduleSpec]),
   ]);
 
   assert(
     existsSync(path.join(scaffoldDir, ".github", "workflows", "ci.yml")),
-    `Expected scaffolded ${options.template} project to include .github/workflows/ci.yml.`,
+    `Expected scaffolded ${options.preset} project to include .github/workflows/ci.yml.`,
   );
 
   console.log(`Installing Node dependencies in ${scaffoldDir}`);
-  run("pnpm", ["install", "--frozen-lockfile"], { cwd: scaffoldDir });
+  run("pnpm", ["install"], { cwd: scaffoldDir });
 
-  if (options.needsPython) {
+  const appEntries = readdirSync(path.join(scaffoldDir, "apps"), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+  const pythonApps = appEntries.filter((appName) =>
+    existsSync(path.join(scaffoldDir, "apps", appName, "pyproject.toml")),
+  );
+  const rustApps = appEntries.filter((appName) =>
+    existsSync(path.join(scaffoldDir, "apps", appName, "Cargo.toml")),
+  );
+
+  if (pythonApps.length > 0) {
     console.log("Syncing Python dependencies");
-    run("uv", ["sync", "--group", "dev"], { cwd: path.join(scaffoldDir, "apps", "api") });
+    for (const appName of pythonApps) {
+      run("uv", ["sync", "--group", "dev"], { cwd: path.join(scaffoldDir, "apps", appName) });
+    }
   }
 
-  if (options.needsRust) {
+  if (rustApps.length > 0) {
     console.log("Installing Rust tools needed by the generated harness");
     run("rustup", ["toolchain", "install", "nightly", "--component", "rust-src"], {
       cwd: scaffoldDir,
@@ -144,7 +149,7 @@ try {
   run("just", ["typecheck"], { cwd: scaffoldDir });
   run("just", ["test"], { cwd: scaffoldDir });
 
-  console.log(`scaffold:evaluate passed for ${options.template}`);
+  console.log(`scaffold:evaluate passed for ${options.preset}`);
 } finally {
   rmSync(tempRoot, { recursive: true, force: true });
 }

@@ -1,7 +1,7 @@
 {
   "name": "dk-harness",
   "version": "0.2.0",
-  "description": "Scaffold Next.js, FastAPI, and Axum projects from the dk-harness template catalog.",
+  "description": "Compose Next.js, FastAPI, and Axum projects from the dk-harness module catalog.",
   "keywords": [
     "scaffold",
     "template",
@@ -24,12 +24,15 @@
   "scripts": {
     "repo:self-check": "node ./scripts/repo-self-check.mjs",
     "repo:supply-chain": "node ./scripts/repo-supply-chain.mjs",
+    "modules:check": "node ./scripts/validate-modules.mjs",
     "docs:check": "node ./scripts/docs-check.mjs",
+    "fixtures:check": "node ./scripts/generate-scaffolds.mjs",
+    "fixtures:sync": "node ./scripts/generate-scaffolds.mjs --write",
     "scaffold:eval": "node ./scripts/scaffold-eval.mjs",
     "release:check": "node ./scripts/release-pack-check.mjs"
   },
   "files": [
-    "bin/dk-harness",
+    "bin",
     "templates",
     "README.md"
   ],

@@ -1,0 +1,36 @@
+set shell := ["bash", "-cu"]
+
+install:
+  mise install
+  pnpm install
+  rustup toolchain install nightly --component rust-src
+  cargo install cargo-nextest cargo-udeps cargo-deny cargo-audit --locked
+  pnpm exec playwright install chromium
+
+lint:
+  pnpm --filter web lint
+  pnpm --dir packages/ui exec depcruise --config dependency-cruiser.cjs src
+  node ./scripts/check-rust-layers.mjs apps/axum
+  (cd apps/axum && cargo fmt --check)
+  (cd apps/axum && cargo clippy --all-targets --all-features -- -D warnings)
+  (cd apps/axum && cargo +nightly udeps --all-targets)
+
+typecheck:
+  pnpm --filter web typecheck
+  (cd apps/axum && cargo check --all-targets)
+
+test:
+  pnpm --filter web test
+  (cd apps/axum && cargo nextest run)
+
+ux:
+  pnpm --filter web ux
+
+supply-chain:
+  gitleaks dir . --config .gitleaks.toml
+  osv-scanner scan source -r .
+  pnpm audit --audit-level=high
+  (cd apps/axum && cargo deny check)
+  (cd apps/axum && cargo audit)
+
+ci: lint typecheck test ux supply-chain

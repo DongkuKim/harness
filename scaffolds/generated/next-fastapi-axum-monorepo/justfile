@@ -1,0 +1,41 @@
+set shell := ["bash", "-cu"]
+
+install:
+  mise install
+  pnpm install
+  (cd apps/api && uv sync --group dev)
+  rustup toolchain install nightly --component rust-src
+  cargo install cargo-nextest cargo-udeps cargo-deny cargo-audit --locked
+  pnpm exec playwright install chromium
+
+lint:
+  pnpm --filter web lint
+  pnpm --dir packages/ui exec depcruise --config dependency-cruiser.cjs src
+  pnpm --filter api lint
+  node ./scripts/check-rust-layers.mjs apps/realtime
+  (cd apps/realtime && cargo fmt --check)
+  (cd apps/realtime && cargo clippy --all-targets --all-features -- -D warnings)
+  (cd apps/realtime && cargo +nightly udeps --all-targets)
+
+typecheck:
+  pnpm --filter web typecheck
+  pnpm --filter api typecheck
+  (cd apps/realtime && cargo check --all-targets)
+
+test:
+  pnpm --filter web test
+  pnpm --filter api test
+  (cd apps/realtime && cargo nextest run)
+
+ux:
+  pnpm --filter web ux
+
+supply-chain:
+  gitleaks dir . --config .gitleaks.toml
+  osv-scanner scan source -r .
+  pnpm audit --audit-level=high
+  pnpm --filter api supply-chain
+  (cd apps/realtime && cargo deny check)
+  (cd apps/realtime && cargo audit)
+
+ci: lint typecheck test ux supply-chain

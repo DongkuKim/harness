@@ -1,5 +1,0 @@
-[tools]
-node = "20"
-pnpm = "9.15.9"
-rust = "stable"
-

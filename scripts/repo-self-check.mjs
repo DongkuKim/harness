@@ -23,6 +23,12 @@ function run(command, args) {
 console.log("Compiling the published Python CLI...");
 run("python3", ["-m", "py_compile", "bin/dk-harness"]);
 
+console.log("Validating module manifests...");
+run("npm", ["run", "modules:check"]);
+
+console.log("Checking generated scaffold freshness...");
+run("npm", ["run", "fixtures:check"]);
+
 console.log("Checking the local CLI command surface...");
 run("./bin/dk-harness", ["list"]);
 
