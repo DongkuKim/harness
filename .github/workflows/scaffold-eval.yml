@@ -13,34 +13,27 @@ env:
   GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
+  scaffold-matrix:
+    name: scaffold evaluation matrix
+    runs-on: ubuntu-latest
+    outputs:
+      presets: ${{ steps.scaffold-matrix.outputs.presets }}
+      include_axum: ${{ steps.scaffold-matrix.outputs.include_axum }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scaffold-matrix
+        run: node ./scripts/scaffold-ci-matrix.mjs
+
   scaffold:
     name: scaffold / ${{ matrix.preset.name }}
+    needs: scaffold-matrix
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        preset:
-          - name: next-monorepo
-            needs_python: false
-            needs_rust: false
-          - name: package-nextjs-ui-kit
-            needs_python: false
-            needs_rust: false
-          - name: next-nextjs-api-monorepo
-            needs_python: false
-            needs_rust: false
-          - name: next-fastapi-monorepo
-            needs_python: true
-            needs_rust: false
-          - name: next-axum-monorepo
-            needs_python: false
-            needs_rust: true
-          - name: next-fastapi-axum-monorepo
-            needs_python: true
-            needs_rust: true
-          - name: next-2x-fastapi-monorepo
-            needs_python: true
-            needs_rust: false
+        preset: ${{ fromJSON(needs.scaffold-matrix.outputs.presets) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
