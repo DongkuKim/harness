@@ -42,6 +42,8 @@ Scaffold-level `just lint`, `just typecheck`, `just test`, and `just ux` command
 - `ux`: installs Playwright browser dependencies and runs `just ux`
 - `supply-chain`: runs `just supply-chain`
 - Python and Rust setup are lane- and preset-specific, so workflow matrix metadata and generated scaffold commands need to move together when runtime requirements change
+- [`.github/workflows/templates-ci.yml`](../.github/workflows/templates-ci.yml) and [`.github/workflows/scaffold-eval.yml`](../.github/workflows/scaffold-eval.yml) derive their fixture and preset matrices through [`scripts/scaffold-ci-matrix.mjs`](../scripts/scaffold-ci-matrix.mjs)
+- On pull requests, Axum/Rust-backed matrix entries are skipped unless Rust-relevant inputs changed; pushes to `main` and manual runs keep full coverage
 
 ## Release And Scaffold Verification
 

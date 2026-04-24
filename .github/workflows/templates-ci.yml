@@ -33,41 +33,27 @@ env:
   GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
+  scaffold-matrix:
+    name: scaffold fixture matrix
+    runs-on: ubuntu-latest
+    outputs:
+      fixtures: ${{ steps.scaffold-matrix.outputs.fixtures }}
+      include_axum: ${{ steps.scaffold-matrix.outputs.include_axum }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scaffold-matrix
+        run: node ./scripts/scaffold-ci-matrix.mjs
+
   fast:
     name: ${{ matrix.fixture.name }} / fast
+    needs: scaffold-matrix
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        fixture:
-          - name: next-monorepo
-            path: scaffolds/generated/next-monorepo
-            needs_python: false
-            needs_rust: false
-          - name: package-nextjs-ui-kit
-            path: scaffolds/generated/package-nextjs-ui-kit
-            needs_python: false
-            needs_rust: false
-          - name: next-nextjs-api-monorepo
-            path: scaffolds/generated/next-nextjs-api-monorepo
-            needs_python: false
-            needs_rust: false
-          - name: next-fastapi-monorepo
-            path: scaffolds/generated/next-fastapi-monorepo
-            needs_python: true
-            needs_rust: false
-          - name: next-axum-monorepo
-            path: scaffolds/generated/next-axum-monorepo
-            needs_python: false
-            needs_rust: true
-          - name: next-fastapi-axum-monorepo
-            path: scaffolds/generated/next-fastapi-axum-monorepo
-            needs_python: true
-            needs_rust: true
-          - name: next-2x-fastapi-monorepo
-            path: scaffolds/generated/next-2x-fastapi-monorepo
-            needs_python: true
-            needs_rust: false
+        fixture: ${{ fromJSON(needs.scaffold-matrix.outputs.fixtures) }}
     defaults:
       run:
         working-directory: ${{ matrix.fixture.path }}
@@ -100,39 +86,12 @@ jobs:
 
   test:
     name: ${{ matrix.fixture.name }} / test
+    needs: scaffold-matrix
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        fixture:
-          - name: next-monorepo
-            path: scaffolds/generated/next-monorepo
-            needs_python: false
-            needs_rust: false
-          - name: package-nextjs-ui-kit
-            path: scaffolds/generated/package-nextjs-ui-kit
-            needs_python: false
-            needs_rust: false
-          - name: next-nextjs-api-monorepo
-            path: scaffolds/generated/next-nextjs-api-monorepo
-            needs_python: false
-            needs_rust: false
-          - name: next-fastapi-monorepo
-            path: scaffolds/generated/next-fastapi-monorepo
-            needs_python: true
-            needs_rust: false
-          - name: next-axum-monorepo
-            path: scaffolds/generated/next-axum-monorepo
-            needs_python: false
-            needs_rust: true
-          - name: next-fastapi-axum-monorepo
-            path: scaffolds/generated/next-fastapi-axum-monorepo
-            needs_python: true
-            needs_rust: true
-          - name: next-2x-fastapi-monorepo
-            path: scaffolds/generated/next-2x-fastapi-monorepo
-            needs_python: true
-            needs_rust: false
+        fixture: ${{ fromJSON(needs.scaffold-matrix.outputs.fixtures) }}
     defaults:
       run:
         working-directory: ${{ matrix.fixture.path }}
@@ -164,39 +123,12 @@ jobs:
 
   ux:
     name: ${{ matrix.fixture.name }} / ux
+    needs: scaffold-matrix
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        fixture:
-          - name: next-monorepo
-            path: scaffolds/generated/next-monorepo
-            needs_python: false
-            needs_rust: false
-          - name: package-nextjs-ui-kit
-            path: scaffolds/generated/package-nextjs-ui-kit
-            needs_python: false
-            needs_rust: false
-          - name: next-nextjs-api-monorepo
-            path: scaffolds/generated/next-nextjs-api-monorepo
-            needs_python: false
-            needs_rust: false
-          - name: next-fastapi-monorepo
-            path: scaffolds/generated/next-fastapi-monorepo
-            needs_python: true
-            needs_rust: false
-          - name: next-axum-monorepo
-            path: scaffolds/generated/next-axum-monorepo
-            needs_python: false
-            needs_rust: true
-          - name: next-fastapi-axum-monorepo
-            path: scaffolds/generated/next-fastapi-axum-monorepo
-            needs_python: true
-            needs_rust: true
-          - name: next-2x-fastapi-monorepo
-            path: scaffolds/generated/next-2x-fastapi-monorepo
-            needs_python: true
-            needs_rust: false
+        fixture: ${{ fromJSON(needs.scaffold-matrix.outputs.fixtures) }}
     defaults:
       run:
         working-directory: ${{ matrix.fixture.path }}
@@ -228,39 +160,12 @@ jobs:
 
   supply-chain:
     name: ${{ matrix.fixture.name }} / supply-chain
+    needs: scaffold-matrix
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        fixture:
-          - name: next-monorepo
-            path: scaffolds/generated/next-monorepo
-            needs_python: false
-            needs_rust: false
-          - name: package-nextjs-ui-kit
-            path: scaffolds/generated/package-nextjs-ui-kit
-            needs_python: false
-            needs_rust: false
-          - name: next-nextjs-api-monorepo
-            path: scaffolds/generated/next-nextjs-api-monorepo
-            needs_python: false
-            needs_rust: false
-          - name: next-fastapi-monorepo
-            path: scaffolds/generated/next-fastapi-monorepo
-            needs_python: true
-            needs_rust: false
-          - name: next-axum-monorepo
-            path: scaffolds/generated/next-axum-monorepo
-            needs_python: false
-            needs_rust: true
-          - name: next-fastapi-axum-monorepo
-            path: scaffolds/generated/next-fastapi-axum-monorepo
-            needs_python: true
-            needs_rust: true
-          - name: next-2x-fastapi-monorepo
-            path: scaffolds/generated/next-2x-fastapi-monorepo
-            needs_python: true
-            needs_rust: false
+        fixture: ${{ fromJSON(needs.scaffold-matrix.outputs.fixtures) }}
     defaults:
       run:
         working-directory: ${{ matrix.fixture.path }}
