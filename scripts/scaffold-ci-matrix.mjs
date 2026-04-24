@@ -182,14 +182,6 @@ function presetFileUsesAxum(repoPath) {
 
 function isAxumRelevantPath(repoPath) {
   return (
-    repoPath === ".github/workflows/templates-ci.yml" ||
-    repoPath === ".github/workflows/scaffold-eval.yml" ||
-    repoPath === "package.json" ||
-    repoPath === "pnpm-lock.yaml" ||
-    repoPath.startsWith("bin/") ||
-    repoPath === "scripts/generate-scaffolds.mjs" ||
-    repoPath === "scripts/scaffold-ci-matrix.mjs" ||
-    repoPath === "scripts/scaffold-eval.mjs" ||
     repoPath.startsWith("templates/modules/backend-axum/") ||
     repoPath.startsWith("scaffolds/generated/next-axum-monorepo/") ||
     repoPath.startsWith("scaffolds/generated/next-fastapi-axum-monorepo/") ||
