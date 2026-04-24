@@ -45,3 +45,9 @@ Build a package before publishing:
 ```bash
 pnpm --filter @workspace/ui-kit build
 ```
+
+Review components in Storybook:
+
+```bash
+pnpm --filter @workspace/ui-kit storybook
+```

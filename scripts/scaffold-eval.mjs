@@ -166,6 +166,7 @@ try {
   run("just", ["test"], { cwd: scaffoldDir });
   for (const packageId of packageNextjsIds(preset.modules)) {
     run("pnpm", ["--filter", `@workspace/${packageId}`, "build"], { cwd: scaffoldDir });
+    run("pnpm", ["--filter", `@workspace/${packageId}`, "storybook:build"], { cwd: scaffoldDir });
   }
 
   console.log(`scaffold:evaluate passed for ${options.preset}`);

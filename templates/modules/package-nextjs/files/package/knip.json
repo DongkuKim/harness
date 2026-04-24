@@ -1,6 +1,12 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": ["src/index.ts", "src/styles/globals.css", "vitest.config.ts"],
+  "entry": [
+    ".storybook/main.ts",
+    ".storybook/preview.ts",
+    "src/index.ts",
+    "src/styles/globals.css",
+    "vitest.config.ts"
+  ],
   "project": ["src/**/*.{ts,tsx}", "tests/**/*.{ts,tsx}"],
   "ignoreDependencies": [
     "lucide-react",

@@ -8,6 +8,12 @@
     },
     "types": ["vitest/globals"]
   },
-  "include": ["src", "tests", "vitest.config.ts", "vitest.setup.ts"],
+  "include": [
+    ".storybook",
+    "src",
+    "tests",
+    "vitest.config.ts",
+    "vitest.setup.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

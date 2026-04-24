@@ -21,6 +21,12 @@ Build package artifacts before publishing:
 pnpm --filter @workspace/ui-kit build
 ```
 
+Build package Storybook docs before sharing component previews:
+
+```bash
+pnpm --filter @workspace/ui-kit storybook:build
+```
+
 ## Lane Responsibilities
 
 - `just lint`: Biome, dependency-cruiser, and knip for `packages/ui-kit`

@@ -9,6 +9,8 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm storybook
+pnpm storybook:build
 ```
 
 ## Usage
@@ -23,6 +25,20 @@ Use package exports in app or shared UI code:
 
 ```tsx
 import { Button } from "@workspace/ui-kit"
+```
+
+## Storybook
+
+Run local component review:
+
+```bash
+pnpm storybook
+```
+
+Build static Storybook docs:
+
+```bash
+pnpm storybook:build
 ```
 
 ## Publishing

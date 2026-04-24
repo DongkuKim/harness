@@ -815,6 +815,17 @@ def build_readme(instances: list[ModuleInstance]) -> str:
         lines.extend(
             [
                 "```",
+                "",
+                "Review components in Storybook:",
+                "",
+                "```bash",
+            ]
+        )
+        for instance in package_instances:
+            lines.append(f"pnpm --filter {package_filter(instance)} storybook")
+        lines.extend(
+            [
+                "```",
             ]
         )
 
@@ -1203,6 +1214,19 @@ def build_reliability(instances: list[ModuleInstance]) -> str:
             ]
         )
         lines.extend(f"pnpm --filter {package_filter(instance)} build" for instance in package_instances)
+        lines.extend(["```"])
+        lines.extend(
+            [
+                "",
+                "Build package Storybook docs before sharing component previews:",
+                "",
+                "```bash",
+            ]
+        )
+        lines.extend(
+            f"pnpm --filter {package_filter(instance)} storybook:build"
+            for instance in package_instances
+        )
         lines.extend(["```"])
 
     lines.extend(
