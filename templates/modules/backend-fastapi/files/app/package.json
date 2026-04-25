@@ -9,6 +9,6 @@
     "format": "uv run ruff format .",
     "typecheck": "uv run basedpyright",
     "test": "uv run python -m pytest -n auto",
-    "supply-chain": "uv run pip-audit"
+    "supply-chain": "tmp=$(mktemp) && uv export --format requirements-txt --group dev --no-hashes > \"$tmp\" && uvx pip-audit -r \"$tmp\"; status=$?; rm -f \"$tmp\"; exit $status"
   }
 }

@@ -15,7 +15,6 @@ dev = [
     "httpx>=0.28.1",
     "import-linter>=2.6",
     "hypothesis>=6.140.3",
-    "pip-audit>=2.9.0",
     "pytest>=8.4.2",
     "pytest-xdist>=3.8.0",
     "ruff>=0.14.2",

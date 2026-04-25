@@ -13,5 +13,5 @@ uv run basedpyright
 uv run deptry .
 uv run lint-imports
 uv run pytest -n auto
-uv run pip-audit
+tmp=$(mktemp) && uv export --format requirements-txt --group dev --no-hashes > "$tmp" && uvx pip-audit -r "$tmp"; status=$?; rm -f "$tmp"; exit $status
 ```

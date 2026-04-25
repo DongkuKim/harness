@@ -1,6 +1,6 @@
 {
   "name": "dk-harness",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Compose Next.js apps, UI kit packages, FastAPI services, and Axum services from the dk-harness module catalog.",
   "keywords": [
     "scaffold",
