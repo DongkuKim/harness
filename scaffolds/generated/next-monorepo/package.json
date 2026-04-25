@@ -39,6 +39,7 @@
   },
   "pnpm": {
     "overrides": {
+      "postcss": "8.5.10",
       "tmp": "0.2.4",
       "uuid": "14.0.0"
     }
